@@ -110,7 +110,7 @@ $has_data = ! empty( $config['systems'] );
           <div class="hqf-options-list" id="hessqfOptionsList"></div>
         </div>
         <div class="hessqf-form-group">
-          <label>Procurement, Labor, Materials &amp; Other</label>
+          <label>Procurement/Labor/Materials/Other</label>
           <div class="hqf-options-input-row">
             <input type="text" inputmode="decimal" autocomplete="off" id="hessqfAdjInstallation" class="hqf-adj-input" placeholder="$0" disabled readonly />
             <button type="button" id="hessqfAddInstallationBtn" class="hqf-add-option-btn" disabled aria-label="Add an item">+</button>
@@ -124,7 +124,7 @@ $has_data = ! empty( $config['systems'] );
           <div class="hqf-options-list" id="hessqfInstallationList"></div>
         </div>
         <div class="hessqf-form-group">
-          <label>Down Payment, Cash, or Credit Card.</label>
+          <label>Down Payment/Cash/Credit Card</label>
           <div class="hqf-options-input-row">
             <input type="text" inputmode="decimal" autocomplete="off" id="hessqfAdjDown" class="hqf-adj-input" placeholder="$0" disabled />
             <button type="button" id="hessqfAddDownNoteBtn" class="hqf-add-option-btn" disabled aria-label="Add a note">+</button>

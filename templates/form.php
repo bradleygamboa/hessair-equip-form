@@ -123,7 +123,7 @@ $has_data = ! empty( $config['systems'] );
           <div class="hqf-options-list" id="hessqfInstallationNotesList"></div>
         </div>
         <div class="hessqf-form-group">
-          <label>Down Payment</label>
+          <label>Down Payment / Cash / Credit Card</label>
           <div class="hqf-options-input-row">
             <input type="text" inputmode="decimal" autocomplete="off" id="hessqfAdjDown" class="hqf-adj-input" placeholder="$0" disabled />
             <button type="button" id="hessqfAddDownNoteBtn" class="hqf-add-option-btn" disabled aria-label="Add a note">+</button>

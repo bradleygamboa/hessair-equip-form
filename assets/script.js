@@ -958,8 +958,8 @@
         ['Trade In',         '-' + fmt$(s.tradeIn)],
         ...((s.tradeInNotes || []).length ? [['Trade In Notes', s.tradeInNotes.join('; ')]] : []),
         ['Total Investment', fmt$(total)],
-        ['Down Payment',     fmt$(s.down)],
-        ...((s.downNotes || []).length ? [['Down Payment Notes', s.downNotes.join('; ')]] : []),
+        ['Down Payment / Cash / Credit Card', fmt$(s.down)],
+        ...((s.downNotes || []).length ? [['Down Payment / Cash / Credit Card Notes', s.downNotes.join('; ')]] : []),
         ['Monthly Payment',  fmtMo(p.monthly)],
         ['Daily Investment', fmtDay(p.daily)],
       ];

@@ -1056,6 +1056,7 @@
         ['Trade In',         '-' + fmt$(s.tradeIn)],
         ...((s.tradeInNotes || []).length ? [['Trade In Notes', s.tradeInNotes.join('; ')]] : []),
         ['Total Investment', fmt$(total)],
+        ['Amount Financed',  fmt$(total - s.down)],
         ['Down Payment/Cash/Credit Card', fmt$(s.down)],
         ...((s.downNotes || []).length ? [['Down Payment/Cash/Credit Card Notes', s.downNotes.join('; ')]] : []),
         ['Monthly Payment',  fmtMo(p.monthly)],

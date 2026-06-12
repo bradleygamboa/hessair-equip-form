@@ -190,6 +190,13 @@ $has_data = ! empty( $config['systems'] );
         <h3>Selected System</h3>
         <div class="hessqf-summary-rows" id="hessqfStep2Summary"></div>
       </div>
+      <div class="hessqf-financing-question">
+        <label>Will customer use 0% interest financing?</label>
+        <div class="hessqf-radio-group">
+          <label class="hessqf-radio-option"><input type="radio" name="hessqfFinancing0pct" id="hessqfFinancing0pctYes" value="Yes" /> Yes</label>
+          <label class="hessqf-radio-option"><input type="radio" name="hessqfFinancing0pct" id="hessqfFinancing0pctNo" value="No" /> No</label>
+        </div>
+      </div>
       <div class="hessqf-financing-disclaimer">0% Financing available with approved credit.</div>
       <div class="hessqf-financing-disclaimer">*Estimate based on 9.99% APR financing over 10 years with a minimum payment.</div>
 

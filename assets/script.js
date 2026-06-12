@@ -1125,6 +1125,7 @@
     const email     = document.getElementById('hessqfFieldEmail').value.trim();
     const schedule  = document.getElementById('hessqfFieldSchedule').value;
     const comments  = document.getElementById('hessqfFieldComments').value.trim();
+    const financing0pct = (document.querySelector('input[name="hessqfFinancing0pct"]:checked') || {}).value || '';
     const signature = (window.hessqfSignaturePad && window.hessqfSignaturePad.getDataURL()) || '';
 
     const submitBtn = document.getElementById('hessqfSubmitBtn');
@@ -1142,6 +1143,7 @@
     fd.append('email',        email);
     fd.append('schedule',     schedule);
     fd.append('comments',     comments);
+    fd.append('financing0pct', financing0pct);
     fd.append('ahri',         p.ahri     || '');
     fd.append('modelId',      p.model_id || p.outdoor_model || '');
     fd.append('brand',        p.brand    || '');

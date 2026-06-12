@@ -289,6 +289,8 @@
     const cols = visibleColumns();
     const colCount = cols.length + 1;
 
+    const financingInfo = document.getElementById('hessqfFinancingInfo');
+
     // Prompt state — user hasn't picked any filter yet
     if (!state.hasFilter) {
       tbody.innerHTML = `<tr><td colspan="${colCount}" class="hqf-no-results hqf-prompt">
@@ -296,13 +298,17 @@
         <div class="hqf-prompt-title">Choose a filter above to see matching systems</div>
         <div class="hqf-prompt-sub">${SYSTEMS.length} systems available. Pick a Brand, System Type, Capacity, or Year to narrow down.</div>
       </td></tr>`;
+      if (financingInfo) financingInfo.style.display = 'none';
       return;
     }
 
     if (state.filtered.length === 0) {
       tbody.innerHTML = `<tr><td colspan="${colCount}" class="hqf-no-results">No products match your filters. Try removing one to broaden your search.</td></tr>`;
+      if (financingInfo) financingInfo.style.display = 'none';
       return;
     }
+
+    if (financingInfo) financingInfo.style.display = '';
 
     tbody.innerHTML = state.filtered.map(s => {
       const inCompare = state.comparedUnits.some(u => u._id === s._id);

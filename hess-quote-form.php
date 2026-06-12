@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Hess Air Quote Form (v2)
  * Description:       Multi-step HVAC quote form. Pulls product data from a Google Sheet (published CSV) and emails quotes via Mailgun.
- * Version:           3.5.23
+ * Version:           3.5.24
  * Author:            Hess Air
  * Requires at least: 5.8
  * Requires PHP:      7.4
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'HESSQF_VERSION',    '3.5.23' );
+define( 'HESSQF_VERSION',    '3.5.24' );
 define( 'HESSQF_SLUG',       'hess-quote-form' );
 define( 'HESSQF_DIR',        plugin_dir_path( __FILE__ ) );
 define( 'HESSQF_URL',        plugin_dir_url( __FILE__ ) );

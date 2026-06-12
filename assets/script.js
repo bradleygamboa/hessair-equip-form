@@ -1040,6 +1040,7 @@
 
     const summaryEl = document.getElementById('hessqfStep2Summary');
     if (summaryEl) {
+      const withNotes = (value, items) => (items && items.length) ? `${value} (${items.join(', ')})` : value;
       const rows = [
         ['Quote Number',     state.quoteNumber],
         ['Selected Unit',    unitDisplayName(p)],
@@ -1051,14 +1052,12 @@
         ['SEER2',            p.seer2 != null ? p.seer2 : '—'],
         ['Outdoor Unit',     p.outdoor_model || '—'],
         ['Indoor Unit',      p.indoor_model || '—'],
-        ['Options',          fmt$(s.options)],
-        ['Procurement/Labor/Materials/Other', fmt$(s.installation)],
-        ['Trade In',         '-' + fmt$(s.tradeIn)],
-        ...((s.tradeInNotes || []).length ? [['Trade In Notes', s.tradeInNotes.join('; ')]] : []),
+        ['Options',          withNotes(fmt$(s.options), (s.optionsList || []).map(o => o.label))],
+        ['Procurement/Labor/Materials/Other', withNotes(fmt$(s.installation), (s.installationList || []).map(o => o.label))],
+        ['Trade In',         withNotes('-' + fmt$(s.tradeIn), s.tradeInNotes || [])],
         ['Total Investment', fmt$(total)],
         ['Amount Financed',  fmt$(total - s.down)],
-        ['Down Payment/Cash/Credit Card', fmt$(s.down)],
-        ...((s.downNotes || []).length ? [['Down Payment/Cash/Credit Card Notes', s.downNotes.join('; ')]] : []),
+        ['Down Payment/Cash/Credit Card', withNotes(fmt$(s.down), s.downNotes || [])],
         ['Monthly Payment',  fmtMo(p.monthly)],
         ['Daily Investment', fmtDay(p.daily)],
       ];

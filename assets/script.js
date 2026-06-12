@@ -1060,10 +1060,10 @@
         ['Indoor Unit',      p.indoor_model || '—'],
         ['Options',          withNotes(fmt$(s.options), (s.optionsList || []).map(o => o.label))],
         ['Procurement/Labor/Materials/Other', withNotes(fmt$(s.installation), (s.installationList || []).map(o => o.label))],
+        ['Down Payment/Cash/Credit Card', withNotes(fmt$(s.down), s.downNotes || [])],
         ['Trade In',         withNotes('-' + fmt$(s.tradeIn), s.tradeInNotes || [])],
         ['Total Investment', fmt$(total)],
         ['Amount Financed',  fmt$(total - s.down)],
-        ['Down Payment/Cash/Credit Card', withNotes(fmt$(s.down), s.downNotes || [])],
         ['Monthly Payment',  fmtMo(p.monthly)],
         ['Daily Investment', fmtDay(p.daily)],
       ];

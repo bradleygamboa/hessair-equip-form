@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Hess Air Quote Form (v2)
  * Description:       Multi-step HVAC quote form. Pulls product data from a Google Sheet (published CSV) and emails quotes via Mailgun.
- * Version:           3.5.28
+ * Version:           3.5.29
  * Author:            Hess Air
  * Requires at least: 5.8
  * Requires PHP:      7.4
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'HESSQF_VERSION',    '3.5.28' );
+define( 'HESSQF_VERSION',    '3.5.29' );
 define( 'HESSQF_SLUG',       'hess-quote-form' );
 define( 'HESSQF_DIR',        plugin_dir_path( __FILE__ ) );
 define( 'HESSQF_URL',        plugin_dir_url( __FILE__ ) );
@@ -612,6 +612,21 @@ function hessqf_handle_submission() {
 		'stage'         => sanitize_text_field( $_POST['stage']        ?? '' ),
 	];
 
+	$pricing = [
+		'valuePackage'           => sanitize_text_field( $_POST['valuePackage']           ?? '' ),
+		'options'                => sanitize_text_field( $_POST['options']                ?? '' ),
+		'optionsBreakdown'       => sanitize_text_field( $_POST['optionsBreakdown']       ?? '' ),
+		'installation'           => sanitize_text_field( $_POST['installation']           ?? '' ),
+		'installationBreakdown'  => sanitize_text_field( $_POST['installationBreakdown']  ?? '' ),
+		'downPayment'            => sanitize_text_field( $_POST['downPayment']            ?? '' ),
+		'downNotes'              => sanitize_text_field( $_POST['downNotes']              ?? '' ),
+		'tradeIn'                => sanitize_text_field( $_POST['tradeIn']                ?? '' ),
+		'tradeInNotes'           => sanitize_text_field( $_POST['tradeInNotes']           ?? '' ),
+		'totalInvestment'        => sanitize_text_field( $_POST['totalInvestment']        ?? '' ),
+		'amountFinanced'         => sanitize_text_field( $_POST['amountFinanced']         ?? '' ),
+		'financing0pct'          => sanitize_text_field( $_POST['financing0pct']          ?? '' ),
+	];
+
 	if ( ! $name || ! $email || ! $phone || ! $quote_num ) {
 		wp_send_json_error( [ 'message' => 'Missing required fields.' ] );
 	}
@@ -626,14 +641,15 @@ function hessqf_handle_submission() {
 		'comments'    => $comments,
 		'signature'   => $signature,
 		'unit'        => $unit,
+		'pricing'     => $pricing,
 	] );
 
 	$notify_to  = get_option( 'hessqf_notify_email', get_option( 'admin_email' ) );
 	$notify_cc  = hessqf_parse_email_list( get_option( 'hessqf_notify_cc',  '' ) );
 	$notify_bcc = hessqf_parse_email_list( get_option( 'hessqf_notify_bcc', '' ) );
 
-	$admin_html = hessqf_build_admin_email_html( $quote_num, $name, $phone, $email, $schedule, $comments, $unit, $quote_post_id, $signature );
-	$cust_html  = hessqf_build_customer_email_html( $quote_num, $name, $unit );
+	$admin_html = hessqf_build_admin_email_html( $quote_num, $name, $phone, $email, $schedule, $comments, $unit, $pricing, $quote_post_id, $signature );
+	$cust_html  = hessqf_build_customer_email_html( $quote_num, $name, $unit, $pricing );
 
 	// When the customer has both picked a schedule AND signed the quote, treat
 	// it as an accepted sale and adjust the subject lines accordingly.
@@ -808,9 +824,32 @@ function hessqf_email_data_table( array $rows ) {
 	return $html;
 }
 
+/**
+ * Build the [label, value] rows for the "Pricing & Investment" email
+ * section, mirroring the Step 2 summary page layout (breakdowns/notes
+ * appended in parentheses).
+ */
+function hessqf_pricing_rows( $pricing ) {
+	$with_notes = function( $value, $notes ) {
+		if ( $value === '' ) { return ''; }
+		return $notes !== '' ? "{$value} ({$notes})" : $value;
+	};
+
+	return [
+		[ 'HESSeRized Value Package',         $pricing['valuePackage'] ],
+		[ 'Options',                          $with_notes( $pricing['options'],      $pricing['optionsBreakdown'] ) ],
+		[ 'Procurement/Labor/Materials/Other', $with_notes( $pricing['installation'], $pricing['installationBreakdown'] ) ],
+		[ 'Down Payment/Cash/Credit Card',    $with_notes( $pricing['downPayment'],  $pricing['downNotes'] ) ],
+		[ 'Trade In',                         $with_notes( $pricing['tradeIn'],      $pricing['tradeInNotes'] ) ],
+		[ 'Total Investment',                 $pricing['totalInvestment'] ],
+		[ 'Amount Financed',                  $pricing['amountFinanced'] ],
+		[ '0% Interest Financing',            $pricing['financing0pct'] ],
+	];
+}
+
 /* ── Email body builders ── */
 
-function hessqf_build_admin_email_html( $quote_num, $name, $phone, $email, $schedule, $comments, $unit, $quote_post_id = 0, $signature = '' ) {
+function hessqf_build_admin_email_html( $quote_num, $name, $phone, $email, $schedule, $comments, $unit, $pricing, $quote_post_id = 0, $signature = '' ) {
 	$contact_rows = [
 		[ 'Name',   $name ],
 		[ 'Phone',  $phone ],
@@ -828,7 +867,6 @@ function hessqf_build_admin_email_html( $quote_num, $name, $phone, $email, $sche
 		[ 'System Type',   $unit['system'] ],
 		[ 'Capacity',      $capacity_display ],
 		[ 'Cap. Stg.',     $unit['stage'] ],
-		[ 'Value Package', $unit['tier'] ],
 		[ 'SEER2 Rating',  $unit['seer2'] ],
 		[ 'System Price',  $unit['price'] ],
 	];
@@ -854,6 +892,8 @@ function hessqf_build_admin_email_html( $quote_num, $name, $phone, $email, $sche
 	$html .= hessqf_email_data_table( $contact_rows );
 	$html .= hessqf_email_section_h( 'Quoted System' );
 	$html .= hessqf_email_data_table( $product_rows );
+	$html .= hessqf_email_section_h( 'Pricing & Investment' );
+	$html .= hessqf_email_data_table( hessqf_pricing_rows( $pricing ) );
 
 	if ( $signature ) {
 		$html .= hessqf_email_section_h( 'Customer Signature' );
@@ -868,7 +908,7 @@ function hessqf_build_admin_email_html( $quote_num, $name, $phone, $email, $sche
 	return $html;
 }
 
-function hessqf_build_customer_email_html( $quote_num, $name, $unit ) {
+function hessqf_build_customer_email_html( $quote_num, $name, $unit, $pricing ) {
 	$capacity_display = $unit['capacity'] !== '' ? ( preg_match( '/ton/i', (string) $unit['capacity'] ) ? $unit['capacity'] : $unit['capacity'] . ' Ton' ) : '';
 
 	$product_rows = [
@@ -877,7 +917,6 @@ function hessqf_build_customer_email_html( $quote_num, $name, $unit ) {
 		[ 'System Type',   $unit['system'] ],
 		[ 'Capacity',      $capacity_display ],
 		[ 'Cap. Stg.',     $unit['stage'] ],
-		[ 'Value Package', $unit['tier'] ],
 		[ 'SEER2 Rating',  $unit['seer2'] ],
 		[ 'System Price',  $unit['price'] ],
 	];
@@ -895,6 +934,8 @@ function hessqf_build_customer_email_html( $quote_num, $name, $unit ) {
 	$html .= hessqf_email_quote_badge( $quote_num );
 	$html .= hessqf_email_section_h( 'Selected System' );
 	$html .= hessqf_email_data_table( $product_rows );
+	$html .= hessqf_email_section_h( 'Pricing & Investment' );
+	$html .= hessqf_email_data_table( hessqf_pricing_rows( $pricing ) );
 	$html .= '<p style="margin:24px 0 8px;color:#444;">A Hess Air team member will be in touch with you soon. Call us at <strong>956-702-HESS (4377)</strong> or reply to this email with any questions.</p>';
 	$html .= '<p style="margin:0 0 20px;">Thank you for choosing Hess Air!</p>';
 	$html .= hessqf_email_footer();
@@ -963,7 +1004,8 @@ function hessqf_register_quote_cpt() {
  * on failure (errors are logged but never block the email flow).
  */
 function hessqf_store_quote( $payload ) {
-	$unit = is_array( $payload['unit'] ?? null ) ? $payload['unit'] : [];
+	$unit    = is_array( $payload['unit'] ?? null )    ? $payload['unit']    : [];
+	$pricing = is_array( $payload['pricing'] ?? null ) ? $payload['pricing'] : [];
 
 	$title = sprintf(
 		'%s — %s (%s)',
@@ -1009,6 +1051,19 @@ function hessqf_store_quote( $payload ) {
 		'_hessqf_unit_daily'       => $unit['daily']       ?? '',
 		'_hessqf_unit_outdoor'     => $unit['outdoor']     ?? '',
 		'_hessqf_unit_indoor'      => $unit['indoor']      ?? '',
+		// Pricing fields
+		'_hessqf_pricing_value_package'          => $pricing['valuePackage']          ?? '',
+		'_hessqf_pricing_options'                => $pricing['options']               ?? '',
+		'_hessqf_pricing_options_breakdown'      => $pricing['optionsBreakdown']      ?? '',
+		'_hessqf_pricing_installation'           => $pricing['installation']          ?? '',
+		'_hessqf_pricing_installation_breakdown' => $pricing['installationBreakdown'] ?? '',
+		'_hessqf_pricing_down_payment'           => $pricing['downPayment']           ?? '',
+		'_hessqf_pricing_down_notes'             => $pricing['downNotes']             ?? '',
+		'_hessqf_pricing_trade_in'                => $pricing['tradeIn']              ?? '',
+		'_hessqf_pricing_trade_in_notes'          => $pricing['tradeInNotes']         ?? '',
+		'_hessqf_pricing_total_investment'       => $pricing['totalInvestment']       ?? '',
+		'_hessqf_pricing_amount_financed'        => $pricing['amountFinanced']        ?? '',
+		'_hessqf_pricing_financing_0pct'         => $pricing['financing0pct']         ?? '',
 	];
 	foreach ( $meta as $k => $v ) {
 		update_post_meta( $post_id, $k, $v );
@@ -1201,6 +1256,21 @@ function hessqf_quote_render_detail_box( $post ) {
 		[ 'Daily',        $m( '_hessqf_unit_daily' ) ],
 	];
 
+	$with_notes = function( $value, $notes ) {
+		if ( $value === '' ) { return ''; }
+		return $notes !== '' ? "{$value} ({$notes})" : $value;
+	};
+	$pricing = [
+		[ 'HESSeRized Value Package',          $m( '_hessqf_pricing_value_package' ) ],
+		[ 'Options',                           $with_notes( $m( '_hessqf_pricing_options' ),      $m( '_hessqf_pricing_options_breakdown' ) ) ],
+		[ 'Procurement/Labor/Materials/Other', $with_notes( $m( '_hessqf_pricing_installation' ), $m( '_hessqf_pricing_installation_breakdown' ) ) ],
+		[ 'Down Payment/Cash/Credit Card',     $with_notes( $m( '_hessqf_pricing_down_payment' ), $m( '_hessqf_pricing_down_notes' ) ) ],
+		[ 'Trade In',                          $with_notes( $m( '_hessqf_pricing_trade_in' ),     $m( '_hessqf_pricing_trade_in_notes' ) ) ],
+		[ 'Total Investment',                  $m( '_hessqf_pricing_total_investment' ) ],
+		[ 'Amount Financed',                   $m( '_hessqf_pricing_amount_financed' ) ],
+		[ '0% Interest Financing',             $m( '_hessqf_pricing_financing_0pct' ) ],
+	];
+
 	$render = function( $heading, $items ) {
 		echo '<h3 style="margin:16px 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;color:#1a3a5c;">' . esc_html( $heading ) . '</h3>';
 		echo '<table class="widefat striped" style="border:1px solid #ccd0d4;"><tbody>';
@@ -1215,6 +1285,7 @@ function hessqf_quote_render_detail_box( $post ) {
 	$render( 'Reference', $rows );
 	$render( 'Customer',  $customer );
 	$render( 'Selected System', $unit );
+	$render( 'Pricing & Investment', $pricing );
 
 	$signature = $m( '_hessqf_signature' );
 	if ( $signature && strpos( $signature, 'data:image/' ) === 0 ) {

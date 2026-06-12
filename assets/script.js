@@ -1125,6 +1125,9 @@
     const discountAmount = msSystemPrice * discountPct;
     const discSystemPrice = msSystemPrice - discountAmount;
     const totalInvestment = discSystemPrice + ms.installation + ms.options - ms.tradeIn;
+    const amountFinanced  = totalInvestment - ms.down;
+    const optionsBreakdown      = (ms.optionsList || []).map(o => `${o.label}: ${fmt$(o.amount)}`).join('; ');
+    const installationBreakdown = (ms.installationList || []).map(o => `${o.label}: ${fmt$(o.amount)}`).join('; ');
 
     const name      = document.getElementById('hessqfFieldName').value.trim();
     const phone     = document.getElementById('hessqfFieldPhone').value.trim();
@@ -1165,12 +1168,15 @@
     fd.append('valuePackageDiscount',    discountAmount ? fmt$(discountAmount) : '');
     fd.append('discountedSystemPrice',   fmt$(discSystemPrice));
     fd.append('installation', fmt$(ms.installation));
+    fd.append('installationBreakdown', installationBreakdown);
     fd.append('options',      fmt$(ms.options));
+    fd.append('optionsBreakdown', optionsBreakdown);
     fd.append('downPayment',  fmt$(ms.down));
     fd.append('tradeIn',      fmt$(ms.tradeIn));
     fd.append('downNotes',         (ms.downNotes || []).join('; '));
     fd.append('tradeInNotes',      (ms.tradeInNotes || []).join('; '));
     fd.append('totalInvestment', fmt$(totalInvestment));
+    fd.append('amountFinanced',  fmt$(amountFinanced));
     fd.append('monthly',      fmtMo(p.monthly));
     fd.append('daily',        fmtDay(p.daily));
     fd.append('outdoorModel', p.outdoor_model || '');

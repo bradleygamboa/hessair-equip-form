@@ -703,6 +703,12 @@ button.hqf-tc-remove {
   flex: 1 1 160px;
   min-width: 120px;
 }
+.hqf-adj-grid .hessqf-form-group label {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: break-word;
+  line-height: 1.25;
+}
 .hqf-adj-input:disabled {
   background: #f4f5f7;
   cursor: not-allowed;

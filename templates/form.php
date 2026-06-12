@@ -110,20 +110,21 @@ $has_data = ! empty( $config['systems'] );
           <div class="hqf-options-list" id="hessqfOptionsList"></div>
         </div>
         <div class="hessqf-form-group">
-          <label>Procurement/Labor/Materials</label>
+          <label>Procurement, Labor, Materials &amp; Other</label>
           <div class="hqf-options-input-row">
-            <input type="text" inputmode="decimal" autocomplete="off" id="hessqfAdjInstallation" class="hqf-adj-input" placeholder="$0" disabled />
-            <button type="button" id="hessqfAddInstallationNoteBtn" class="hqf-add-option-btn" disabled aria-label="Add a note">+</button>
+            <input type="text" inputmode="decimal" autocomplete="off" id="hessqfAdjInstallation" class="hqf-adj-input" placeholder="$0" disabled readonly />
+            <button type="button" id="hessqfAddInstallationBtn" class="hqf-add-option-btn" disabled aria-label="Add an item">+</button>
           </div>
-          <div class="hqf-add-option-form" id="hessqfAddInstallationNoteForm" style="display:none;">
-            <input type="text" autocomplete="off" id="hessqfNewInstallationNote" class="hqf-add-option-label" placeholder="Notes" style="flex:1 1 100%;" />
-            <button type="button" id="hessqfNewInstallationNoteAdd" class="hessqf-btn hessqf-btn-primary hessqf-btn-sm">Add</button>
-            <button type="button" id="hessqfNewInstallationNoteCancel" class="hessqf-btn hessqf-btn-ghost hessqf-btn-sm">Cancel</button>
+          <div class="hqf-add-option-form" id="hessqfAddInstallationForm" style="display:none;">
+            <input type="text" autocomplete="off" id="hessqfNewInstallationLabel" class="hqf-add-option-label" placeholder="Description" />
+            <input type="text" inputmode="decimal" autocomplete="off" id="hessqfNewInstallationCost" class="hqf-add-option-cost" placeholder="$0" />
+            <button type="button" id="hessqfNewInstallationAdd" class="hessqf-btn hessqf-btn-primary hessqf-btn-sm">Add</button>
+            <button type="button" id="hessqfNewInstallationCancel" class="hessqf-btn hessqf-btn-ghost hessqf-btn-sm">Cancel</button>
           </div>
-          <div class="hqf-options-list" id="hessqfInstallationNotesList"></div>
+          <div class="hqf-options-list" id="hessqfInstallationList"></div>
         </div>
         <div class="hessqf-form-group">
-          <label>Down Payment / Cash / Credit Card</label>
+          <label>Down Payment, Cash, or Credit Card.</label>
           <div class="hqf-options-input-row">
             <input type="text" inputmode="decimal" autocomplete="off" id="hessqfAdjDown" class="hqf-adj-input" placeholder="$0" disabled />
             <button type="button" id="hessqfAddDownNoteBtn" class="hqf-add-option-btn" disabled aria-label="Add a note">+</button>

@@ -449,11 +449,11 @@
       indoor:       parseMoney(unit.indoor_price),
       system_price: parseMoney(unit.price),
       installation: 0,
+      installationList: [],
       options:      0,
       optionsList:  [],
       down:         0,
       tradeIn:      0,
-      installationNotes: [],
       downNotes:         [],
       tradeInNotes:      [],
     };
@@ -649,14 +649,12 @@
      Single set of inputs in the Selection Bar section, applied to
      whichever unit is currently selected. ── */
   const COST_ADJ_FIELDS = [
-    ['hessqfAdjInstallation', 'installation'],
     ['hessqfAdjDown',         'down'],
     ['hessqfAdjTradeIn',      'tradeIn'],
   ];
 
-  // Notes line items for Procurement/Labor/Materials/Other, Down Payment, Trade In
+  // Notes line items for Down Payment, Trade In
   const NOTE_FIELDS = [
-    { key: 'installationNotes', addBtn: 'hessqfAddInstallationNoteBtn', form: 'hessqfAddInstallationNoteForm', input: 'hessqfNewInstallationNote', save: 'hessqfNewInstallationNoteAdd', cancel: 'hessqfNewInstallationNoteCancel', list: 'hessqfInstallationNotesList' },
     { key: 'downNotes',         addBtn: 'hessqfAddDownNoteBtn',         form: 'hessqfAddDownNoteForm',         input: 'hessqfNewDownNote',         save: 'hessqfNewDownNoteAdd',         cancel: 'hessqfNewDownNoteCancel',         list: 'hessqfDownNotesList' },
     { key: 'tradeInNotes',      addBtn: 'hessqfAddTradeInNoteBtn',      form: 'hessqfAddTradeInNoteForm',      input: 'hessqfNewTradeInNote',      save: 'hessqfNewTradeInNoteAdd',      cancel: 'hessqfNewTradeInNoteCancel',      list: 'hessqfTradeInNotesList' },
   ];
@@ -667,6 +665,12 @@
     ms.options = (ms.optionsList || []).reduce((sum, o) => sum + o.amount, 0);
   }
 
+  function recalcInstallationTotal(u) {
+    if (!u || !matrixState[u._id]) return;
+    const ms = matrixState[u._id];
+    ms.installation = (ms.installationList || []).reduce((sum, o) => sum + o.amount, 0);
+  }
+
   function updateOptionsInputDisplay() {
     const inp = document.getElementById('hessqfAdjOptions');
     if (!inp) return;
@@ -674,6 +678,16 @@
     if (!u) { inp.value = ''; return; }
     const ms = matrixState[u._id];
     const val = ms ? ms.options : 0;
+    inp.value = val ? formatMoneyDisplay(val) : '';
+  }
+
+  function updateInstallationInputDisplay() {
+    const inp = document.getElementById('hessqfAdjInstallation');
+    if (!inp) return;
+    const u = state.selectedUnit;
+    if (!u) { inp.value = ''; return; }
+    const ms = matrixState[u._id];
+    const val = ms ? ms.installation : 0;
     inp.value = val ? formatMoneyDisplay(val) : '';
   }
 
@@ -699,6 +713,33 @@
         recalcOptionsTotal(sel);
         renderOptionsList();
         updateOptionsInputDisplay();
+        updateSelectionBar();
+      });
+    });
+  }
+
+  function renderInstallationList() {
+    const listEl = document.getElementById('hessqfInstallationList');
+    if (!listEl) return;
+    const u = state.selectedUnit;
+    const items = (u && matrixState[u._id] && matrixState[u._id].installationList) || [];
+    if (items.length === 0) { listEl.innerHTML = ''; return; }
+    listEl.innerHTML = items.map((o, i) => `
+      <div class="hqf-option-item">
+        <span class="hqf-option-label">${escapeHtml(o.label)}</span>
+        <span class="hqf-option-amount">${escapeHtml(formatMoneyDisplay(o.amount) || '$0')}</span>
+        <button type="button" class="hqf-option-remove" data-idx="${i}" aria-label="Remove ${escapeHtml(o.label)}">&times;</button>
+      </div>
+    `).join('');
+    listEl.querySelectorAll('.hqf-option-remove').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = Number(btn.dataset.idx);
+        const sel = state.selectedUnit;
+        if (!sel || !matrixState[sel._id]) return;
+        matrixState[sel._id].installationList.splice(idx, 1);
+        recalcInstallationTotal(sel);
+        renderInstallationList();
+        updateInstallationInputDisplay();
         updateSelectionBar();
       });
     });
@@ -750,6 +791,14 @@
 
     updateOptionsInputDisplay();
     renderOptionsList();
+
+    const installAddBtn  = document.getElementById('hessqfAddInstallationBtn');
+    const installAddForm = document.getElementById('hessqfAddInstallationForm');
+    if (installAddBtn) installAddBtn.disabled = !u;
+    if (installAddForm && !u) installAddForm.style.display = 'none';
+
+    updateInstallationInputDisplay();
+    renderInstallationList();
 
     NOTE_FIELDS.forEach(field => {
       const noteAddBtn  = document.getElementById(field.addBtn);
@@ -831,7 +880,57 @@
       });
     });
 
-    // Add Note (Procurement/Labor/Materials/Other, Down Payment, Trade In)
+    // Add Installation/Procurement item (line items)
+    const installAddBtn    = document.getElementById('hessqfAddInstallationBtn');
+    const installAddForm   = document.getElementById('hessqfAddInstallationForm');
+    const installLabelInp  = document.getElementById('hessqfNewInstallationLabel');
+    const installCostInp   = document.getElementById('hessqfNewInstallationCost');
+    const installSaveBtn   = document.getElementById('hessqfNewInstallationAdd');
+    const installCancelBtn = document.getElementById('hessqfNewInstallationCancel');
+
+    const closeInstallForm = () => {
+      if (installLabelInp) installLabelInp.value = '';
+      if (installCostInp)  installCostInp.value  = '';
+      if (installAddForm)  installAddForm.style.display = 'none';
+    };
+
+    if (installAddBtn && installAddForm) {
+      installAddBtn.addEventListener('click', () => {
+        if (installAddBtn.disabled) return;
+        const isOpen = installAddForm.style.display !== 'none';
+        installAddForm.style.display = isOpen ? 'none' : 'flex';
+        if (!isOpen && installLabelInp) installLabelInp.focus();
+      });
+    }
+
+    if (installSaveBtn) {
+      installSaveBtn.addEventListener('click', () => {
+        const u = state.selectedUnit;
+        if (!u || !matrixState[u._id]) return;
+        const label  = (installLabelInp.value || '').trim();
+        const amount = parseMoney(installCostInp.value);
+        if (!label || !amount) return;
+        matrixState[u._id].installationList = matrixState[u._id].installationList || [];
+        matrixState[u._id].installationList.push({ label, amount });
+        recalcInstallationTotal(u);
+        renderInstallationList();
+        updateInstallationInputDisplay();
+        updateSelectionBar();
+        closeInstallForm();
+      });
+    }
+
+    if (installCancelBtn) installCancelBtn.addEventListener('click', closeInstallForm);
+
+    [installLabelInp, installCostInp].forEach(el => {
+      if (!el) return;
+      el.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); installSaveBtn?.click(); }
+        else if (e.key === 'Escape') { closeInstallForm(); }
+      });
+    });
+
+    // Add Note (Down Payment, Trade In)
     NOTE_FIELDS.forEach(field => {
       const noteAddBtn  = document.getElementById(field.addBtn);
       const noteAddForm = document.getElementById(field.form);
@@ -953,13 +1052,12 @@
         ['Outdoor Unit',     p.outdoor_model || '—'],
         ['Indoor Unit',      p.indoor_model || '—'],
         ['Options',          fmt$(s.options)],
-        ['Procurement/Labor/Materials', fmt$(s.installation)],
-        ...((s.installationNotes || []).length ? [['Procurement/Labor/Materials Notes', s.installationNotes.join('; ')]] : []),
+        ['Procurement, Labor, Materials & Other', fmt$(s.installation)],
         ['Trade In',         '-' + fmt$(s.tradeIn)],
         ...((s.tradeInNotes || []).length ? [['Trade In Notes', s.tradeInNotes.join('; ')]] : []),
         ['Total Investment', fmt$(total)],
-        ['Down Payment / Cash / Credit Card', fmt$(s.down)],
-        ...((s.downNotes || []).length ? [['Down Payment / Cash / Credit Card Notes', s.downNotes.join('; ')]] : []),
+        ['Down Payment, Cash, or Credit Card.', fmt$(s.down)],
+        ...((s.downNotes || []).length ? [['Down Payment, Cash, or Credit Card. Notes', s.downNotes.join('; ')]] : []),
         ['Monthly Payment',  fmtMo(p.monthly)],
         ['Daily Investment', fmtDay(p.daily)],
       ];
@@ -1062,7 +1160,6 @@
     fd.append('options',      fmt$(ms.options));
     fd.append('downPayment',  fmt$(ms.down));
     fd.append('tradeIn',      fmt$(ms.tradeIn));
-    fd.append('installationNotes', (ms.installationNotes || []).join('; '));
     fd.append('downNotes',         (ms.downNotes || []).join('; '));
     fd.append('tradeInNotes',      (ms.tradeInNotes || []).join('; '));
     fd.append('totalInvestment', fmt$(totalInvestment));

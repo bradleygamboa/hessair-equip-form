@@ -1114,7 +1114,8 @@
     const v1 = validateField('hessqfFieldName',     'hessqfErrName',     'Full name is required.');
     const v2 = validateField('hessqfFieldPhone',    'hessqfErrPhone',    'Phone number is required.');
     const v3 = validateField('hessqfFieldEmail',    'hessqfErrEmail',    'A valid email address is required.', v => emailRe.test(v));
-    if (!v1 || !v2 || !v3) return;
+    const v4 = validateField('hessqfFieldAddress',  'hessqfErrAddress',  'Address is required.');
+    if (!v1 || !v2 || !v3 || !v4) return;
 
     const p     = state.selectedUnit;
     const meta  = tierMetaFor(state.selectedPackage);
@@ -1132,6 +1133,7 @@
     const name      = document.getElementById('hessqfFieldName').value.trim();
     const phone     = document.getElementById('hessqfFieldPhone').value.trim();
     const email     = document.getElementById('hessqfFieldEmail').value.trim();
+    const address   = document.getElementById('hessqfFieldAddress').value.trim();
     const schedule  = document.getElementById('hessqfFieldSchedule').value;
     const comments  = document.getElementById('hessqfFieldComments').value.trim();
     const financing0pct = (document.querySelector('input[name="hessqfFinancing0pct"]:checked') || {}).value || '';
@@ -1150,6 +1152,7 @@
     fd.append('name',         name);
     fd.append('phone',        phone);
     fd.append('email',        email);
+    fd.append('address',      address);
     fd.append('schedule',     schedule);
     fd.append('comments',     comments);
     fd.append('financing0pct', financing0pct);
@@ -1241,10 +1244,11 @@
       ];
 
       const contactRows = [
-        ['Name',   name],
-        ['Phone',  document.getElementById('hessqfFieldPhone').value.trim()],
-        ['Email',  email],
-        ['Timing', schedule],
+        ['Name',    name],
+        ['Phone',   document.getElementById('hessqfFieldPhone').value.trim()],
+        ['Email',   email],
+        ['Address', address],
+        ['Timing',  schedule],
         ...(comments ? [['Notes', comments]] : []),
       ];
 

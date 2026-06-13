@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Hess Air Quote Form (v2)
  * Description:       Multi-step HVAC quote form. Pulls product data from a Google Sheet (published CSV) and emails quotes via Mailgun.
- * Version:           3.5.29
+ * Version:           3.5.30
  * Author:            Hess Air
  * Requires at least: 5.8
  * Requires PHP:      7.4
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'HESSQF_VERSION',    '3.5.29' );
+define( 'HESSQF_VERSION',    '3.5.30' );
 define( 'HESSQF_SLUG',       'hess-quote-form' );
 define( 'HESSQF_DIR',        plugin_dir_path( __FILE__ ) );
 define( 'HESSQF_URL',        plugin_dir_url( __FILE__ ) );
@@ -583,6 +583,7 @@ function hessqf_handle_submission() {
 	$name      = sanitize_text_field( $_POST['name']        ?? '' );
 	$phone     = sanitize_text_field( $_POST['phone']       ?? '' );
 	$email     = sanitize_email( $_POST['email']            ?? '' );
+	$address   = sanitize_text_field( $_POST['address']     ?? '' );
 	$schedule  = sanitize_text_field( $_POST['schedule']    ?? '' );
 	$comments  = sanitize_textarea_field( $_POST['comments']?? '' );
 
@@ -637,6 +638,7 @@ function hessqf_handle_submission() {
 		'name'        => $name,
 		'phone'       => $phone,
 		'email'       => $email,
+		'address'     => $address,
 		'schedule'    => $schedule,
 		'comments'    => $comments,
 		'signature'   => $signature,
@@ -648,7 +650,7 @@ function hessqf_handle_submission() {
 	$notify_cc  = hessqf_parse_email_list( get_option( 'hessqf_notify_cc',  '' ) );
 	$notify_bcc = hessqf_parse_email_list( get_option( 'hessqf_notify_bcc', '' ) );
 
-	$admin_html = hessqf_build_admin_email_html( $quote_num, $name, $phone, $email, $schedule, $comments, $unit, $pricing, $quote_post_id, $signature );
+	$admin_html = hessqf_build_admin_email_html( $quote_num, $name, $phone, $email, $address, $schedule, $comments, $unit, $pricing, $quote_post_id, $signature );
 	$cust_html  = hessqf_build_customer_email_html( $quote_num, $name, $unit, $pricing );
 
 	// When the customer has both picked a schedule AND signed the quote, treat
@@ -849,12 +851,13 @@ function hessqf_pricing_rows( $pricing ) {
 
 /* ── Email body builders ── */
 
-function hessqf_build_admin_email_html( $quote_num, $name, $phone, $email, $schedule, $comments, $unit, $pricing, $quote_post_id = 0, $signature = '' ) {
+function hessqf_build_admin_email_html( $quote_num, $name, $phone, $email, $address, $schedule, $comments, $unit, $pricing, $quote_post_id = 0, $signature = '' ) {
 	$contact_rows = [
-		[ 'Name',   $name ],
-		[ 'Phone',  $phone ],
-		[ 'Email',  $email ],
-		[ 'Timing', $schedule ],
+		[ 'Name',    $name ],
+		[ 'Phone',   $phone ],
+		[ 'Email',   $email ],
+		[ 'Address', $address ],
+		[ 'Timing',  $schedule ],
 	];
 	if ( $comments ) { $contact_rows[] = [ 'Notes', $comments ]; }
 
@@ -1030,6 +1033,7 @@ function hessqf_store_quote( $payload ) {
 		'_hessqf_name'         => $payload['name']        ?? '',
 		'_hessqf_phone'        => $payload['phone']       ?? '',
 		'_hessqf_email'        => $payload['email']       ?? '',
+		'_hessqf_address'      => $payload['address']     ?? '',
 		'_hessqf_schedule'     => $payload['schedule']    ?? '',
 		'_hessqf_comments'     => $payload['comments']    ?? '',
 		'_hessqf_status'       => 'new',
@@ -1236,6 +1240,7 @@ function hessqf_quote_render_detail_box( $post ) {
 		[ 'Name',     $m( '_hessqf_name' ) ],
 		[ 'Email',    $m( '_hessqf_email' ) ],
 		[ 'Phone',    $m( '_hessqf_phone' ) ],
+		[ 'Address',  $m( '_hessqf_address' ) ],
 		[ 'Timing',   $m( '_hessqf_schedule' ) ],
 		[ 'Comments', $m( '_hessqf_comments' ) ],
 	];

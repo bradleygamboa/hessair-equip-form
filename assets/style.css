@@ -846,6 +846,12 @@ button.hqf-tc-remove {
 @media (max-width: 600px) { .hessqf-form-grid { grid-template-columns: 1fr; } }
 .hessqf-form-group { display: flex; flex-direction: column; gap: 4px; }
 .hessqf-full-width { grid-column: 1 / -1; }
+.hessqf-contact-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 600px) { .hessqf-contact-row { grid-template-columns: 1fr; } }
 .hessqf-form-group label {
   font-size: 0.78rem;
   font-weight: 600;

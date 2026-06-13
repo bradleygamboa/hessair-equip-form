@@ -205,20 +205,27 @@ $has_data = ! empty( $config['systems'] );
       <div id="hessqfAlertSubmitError" class="hessqf-alert hessqf-alert-error"></div>
 
       <div class="hessqf-form-grid">
-        <div class="hessqf-form-group">
-          <label>Full Name <span class="hessqf-required">*</span></label>
-          <input type="text" id="hessqfFieldName" placeholder="Jane Smith" />
-          <span class="hessqf-field-error" id="hessqfErrName"></span>
+        <div class="hessqf-full-width hessqf-contact-row">
+          <div class="hessqf-form-group">
+            <label>Full Name <span class="hessqf-required">*</span></label>
+            <input type="text" id="hessqfFieldName" placeholder="Jane Smith" />
+            <span class="hessqf-field-error" id="hessqfErrName"></span>
+          </div>
+          <div class="hessqf-form-group">
+            <label>Email Address <span class="hessqf-required">*</span></label>
+            <input type="email" id="hessqfFieldEmail" placeholder="jane@example.com" />
+            <span class="hessqf-field-error" id="hessqfErrEmail"></span>
+          </div>
+          <div class="hessqf-form-group">
+            <label>Phone Number <span class="hessqf-required">*</span></label>
+            <input type="tel" id="hessqfFieldPhone" placeholder="(555) 867-5309" />
+            <span class="hessqf-field-error" id="hessqfErrPhone"></span>
+          </div>
         </div>
-        <div class="hessqf-form-group">
-          <label>Phone Number <span class="hessqf-required">*</span></label>
-          <input type="tel" id="hessqfFieldPhone" placeholder="(555) 867-5309" />
-          <span class="hessqf-field-error" id="hessqfErrPhone"></span>
-        </div>
-        <div class="hessqf-form-group">
-          <label>Email Address <span class="hessqf-required">*</span></label>
-          <input type="email" id="hessqfFieldEmail" placeholder="jane@example.com" />
-          <span class="hessqf-field-error" id="hessqfErrEmail"></span>
+        <div class="hessqf-form-group hessqf-full-width">
+          <label>Address <span class="hessqf-required">*</span></label>
+          <input type="text" id="hessqfFieldAddress" placeholder="123 Main St, Brownsville, TX 78520" />
+          <span class="hessqf-field-error" id="hessqfErrAddress"></span>
         </div>
         <div class="hessqf-form-group">
           <label>When would you like to schedule?</label>

@@ -1052,6 +1052,7 @@
     if (summaryEl) {
       const withNotes = (value, items) => (items && items.length) ? `${value} (${items.join(', ')})` : value;
       const rows = [
+        ['Hess Associate',  document.getElementById('hessqfFieldAssociate')?.value.trim() || '—'],
         ['Quote Number',     state.quoteNumber],
         ['Selected Unit',    unitDisplayName(p)],
         ['Brand',            p.brand || '—'],
@@ -1085,6 +1086,8 @@
   function showStep(n) {
     document.getElementById('hessqfStepPanel1')?.classList.toggle('active', n === 1);
     document.getElementById('hessqfStepPanel2')?.classList.toggle('active', n === 2);
+    const topInfo = document.getElementById('hessqfTopInfoCard');
+    if (topInfo) topInfo.style.display = (n === 2) ? 'none' : '';
     document.getElementById('hessqfStep1Pill')?.classList.toggle('active', n === 1);
     document.getElementById('hessqfStep1Pill')?.classList.toggle('done',   n === 2);
     document.getElementById('hessqfStep2Pill')?.classList.toggle('active', n === 2);

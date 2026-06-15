@@ -21,7 +21,7 @@ $has_data = ! empty( $config['systems'] );
   <?php endif; ?>
 
   <!-- ── Hess Associate & Customer Information ── -->
-  <div class="hessqf-card">
+  <div class="hessqf-card" id="hessqfTopInfoCard">
     <div class="hessqf-card-title">Hess Associate</div>
     <div class="hessqf-form-grid">
       <div class="hessqf-form-group hessqf-full-width">

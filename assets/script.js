@@ -656,6 +656,7 @@
     if (!u) return;
     state.selectedUnit = u;
     buildCompareTable();
+    buildPackageTable();
     populateCostAdjustments();
     updateSectionVisibility();
     updateSelectionBar();

@@ -1196,7 +1196,7 @@
       .then(data => {
         if (data && data.success) {
           const emailSent = data.data?.customerEmail !== false;
-          showConfirmation(name, email, p, meta, schedule, comments, emailSent);
+          showConfirmation(name, email, address, p, meta, schedule, comments, emailSent);
         } else {
           if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Quote →'; }
           if (errorEl) {
@@ -1215,7 +1215,7 @@
   }
 
   /* ── Confirmation ── */
-  function showConfirmation(name, email, p, meta, schedule, comments, emailSent) {
+  function showConfirmation(name, email, address, p, meta, schedule, comments, emailSent) {
     const qn = state.quoteNumber;
     const qnEl    = document.getElementById('hessqfConfirmQuoteNumber');
     const noteEl  = document.getElementById('hessqfConfirmEmailNote');

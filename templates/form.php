@@ -20,6 +20,40 @@ $has_data = ! empty( $config['systems'] );
     </div>
   <?php endif; ?>
 
+  <!-- ── Hess Associate & Customer Information ── -->
+  <div class="hessqf-card">
+    <div class="hessqf-card-title">Hess Associate</div>
+    <div class="hessqf-form-grid">
+      <div class="hessqf-form-group hessqf-full-width">
+        <label>Associate Full Name <span class="hessqf-required">*</span></label>
+        <input type="text" id="hessqfFieldAssociate" placeholder="John Doe" />
+        <span class="hessqf-field-error" id="hessqfErrAssociate"></span>
+      </div>
+    </div>
+
+    <div class="hessqf-card-title" style="margin-top:18px;">Customer Information</div>
+    <div class="hessqf-form-grid">
+      <div class="hessqf-full-width hessqf-contact-row">
+        <div class="hessqf-form-group">
+          <label>Full Name</label>
+          <input type="text" id="hessqfFieldCustomerName" placeholder="Jane Smith" />
+        </div>
+        <div class="hessqf-form-group">
+          <label>Email Address</label>
+          <input type="email" id="hessqfFieldCustomerEmail" placeholder="jane@example.com" />
+        </div>
+        <div class="hessqf-form-group">
+          <label>Phone Number</label>
+          <input type="tel" id="hessqfFieldCustomerPhone" placeholder="(555) 867-5309" />
+        </div>
+      </div>
+      <div class="hessqf-form-group hessqf-full-width">
+        <label>Address</label>
+        <input type="text" id="hessqfFieldCustomerAddress" placeholder="123 Main St, Brownsville, TX 78520" />
+      </div>
+    </div>
+  </div>
+
   <!-- ── Step Indicator ── -->
   <div class="hessqf-step-indicator" id="hessqfStepIndicator">
     <div class="hessqf-step-pill active" id="hessqfStep1Pill"

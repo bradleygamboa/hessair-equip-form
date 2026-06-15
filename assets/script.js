@@ -1119,7 +1119,8 @@
     const v2 = validateField('hessqfFieldPhone',    'hessqfErrPhone',    'Phone number is required.');
     const v3 = validateField('hessqfFieldEmail',    'hessqfErrEmail',    'A valid email address is required.', v => emailRe.test(v));
     const v4 = validateField('hessqfFieldAddress',  'hessqfErrAddress',  'Address is required.');
-    if (!v1 || !v2 || !v3 || !v4) return;
+    const v5 = validateField('hessqfFieldAssociate','hessqfErrAssociate','Hess associate name is required.');
+    if (!v1 || !v2 || !v3 || !v4 || !v5) return;
 
     const p     = state.selectedUnit;
     const meta  = tierMetaFor(state.selectedPackage);
@@ -1134,6 +1135,7 @@
     const optionsBreakdown      = (ms.optionsList || []).map(o => `${o.label}: ${fmt$(o.amount)}`).join('; ');
     const installationBreakdown = (ms.installationList || []).map(o => `${o.label}: ${fmt$(o.amount)}`).join('; ');
 
+    const associate = document.getElementById('hessqfFieldAssociate').value.trim();
     const name      = document.getElementById('hessqfFieldName').value.trim();
     const phone     = document.getElementById('hessqfFieldPhone').value.trim();
     const email     = document.getElementById('hessqfFieldEmail').value.trim();
@@ -1153,6 +1155,7 @@
     fd.append('action',       'hessqf_submit');
     fd.append('nonce',        hessqfData.nonce);
     fd.append('quoteNumber',  state.quoteNumber);
+    fd.append('associate',    associate);
     fd.append('name',         name);
     fd.append('phone',        phone);
     fd.append('email',        email);
@@ -1248,6 +1251,7 @@
       ];
 
       const contactRows = [
+        ['Hess Associate', document.getElementById('hessqfFieldAssociate').value.trim()],
         ['Name',    name],
         ['Phone',   document.getElementById('hessqfFieldPhone').value.trim()],
         ['Email',   email],
@@ -1419,5 +1423,19 @@
     document.getElementById('hessqfGoToStep2Btn')   ?.addEventListener('click', goToStep2);
     document.getElementById('hessqfBackBtn')        ?.addEventListener('click', goToStep1);
     document.getElementById('hessqfSubmitBtn')      ?.addEventListener('click', submitForm);
+
+    // Auto-populate the Step 2 contact fields from the customer info collected
+    // at the top of the form. The Step 2 fields remain editable afterward.
+    [
+      ['hessqfFieldCustomerName',    'hessqfFieldName'],
+      ['hessqfFieldCustomerEmail',   'hessqfFieldEmail'],
+      ['hessqfFieldCustomerPhone',   'hessqfFieldPhone'],
+      ['hessqfFieldCustomerAddress', 'hessqfFieldAddress'],
+    ].forEach(([sourceId, targetId]) => {
+      const source = document.getElementById(sourceId);
+      const target = document.getElementById(targetId);
+      if (!source || !target) return;
+      source.addEventListener('input', () => { target.value = source.value; });
+    });
   });
 })();

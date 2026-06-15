@@ -1014,10 +1014,14 @@
 
     if (!p) {
       setEl('hessqfSelectedPriceDisplay', '—');
+      setEl('hessqfSelectedAmountFinancedDisplay', '—');
       setEl('hessqfSelectedSeer2Display', '—');
       return;
     }
-    setEl('hessqfSelectedPriceDisplay', fmt$(currentTotalInvestment()));
+    const total = currentTotalInvestment();
+    const down  = (matrixState[p._id] || {}).down || 0;
+    setEl('hessqfSelectedPriceDisplay', fmt$(total));
+    setEl('hessqfSelectedAmountFinancedDisplay', fmt$(total - down));
     setEl('hessqfSelectedSeer2Display', p.seer2 != null ? p.seer2 : '—');
   }
 

@@ -164,6 +164,7 @@ $has_data = ! empty( $config['systems'] );
         <div><div class="hessqf-sel-label">Selected Unit</div><div class="hessqf-sel-value" id="hessqfSelectedUnitDisplay">—</div></div>
         <div><div class="hessqf-sel-label">Selected Package</div><div class="hessqf-sel-value" id="hessqfSelectedTierDisplay">—</div></div>
         <div><div class="hessqf-sel-label">Total Investment</div><div class="hessqf-sel-value" id="hessqfSelectedPriceDisplay">—</div></div>
+        <div><div class="hessqf-sel-label">Amount Financed</div><div class="hessqf-sel-value" id="hessqfSelectedAmountFinancedDisplay">—</div></div>
         <div><div class="hessqf-sel-label">SEER2</div><div class="hessqf-sel-value" id="hessqfSelectedSeer2Display">—</div></div>
       </div>
 

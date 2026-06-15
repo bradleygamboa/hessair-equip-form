@@ -610,6 +610,17 @@
       }).join('')}
     </tr>`).join('');
 
+    const sel = state.selectedUnit;
+    const ms = sel && matrixState[sel._id];
+    const systemPrice = ms ? ms.system_price : null;
+    const priceRow = `<tr class="hqf-tc-feat-row">
+      <th class="hqf-tc-label hqf-tc-feat-label">Price with Selected Package</th>
+      ${TIER_META.map(meta => {
+        const display = systemPrice == null ? '—' : fmt$(systemPrice * (1 - tierDiscountPct(meta.tier)));
+        return `<td class="hqf-tc-cell hqf-tc-col-${meta.tier} hqf-tc-feat-cell">${escapeHtml(display)}</td>`;
+      }).join('')}
+    </tr>`;
+
     const selectRow = `<tr class="hqf-tc-select-row">
       <td></td>
       ${TIER_META.map(meta => {
@@ -629,6 +640,7 @@
         </thead>
         <tbody>
           ${featureRows}
+          ${priceRow}
           ${selectRow}
         </tbody>
       </table>

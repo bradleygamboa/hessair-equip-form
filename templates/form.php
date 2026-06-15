@@ -128,7 +128,7 @@ $has_data = ! empty( $config['systems'] );
 
       <div id="hessqfPackageSection" style="display:none;">
         <img src="<?php echo esc_url( HESSQF_URL . 'assets/images/hesserized-logo.png' ); ?>" alt="HESSeRized (just right)" class="hessqf-hesserized-logo" style="display:block;margin:28px 0 6px;max-width:260px;height:auto;" />
-        <div class="hessqf-card-title">Choose Your Hesserized&trade; Promotional System</div>
+        <div class="hessqf-card-title">Choose Your Promotional Value</div>
         <div class="hessqf-card-sub" style="font-size:0.85rem;color:#666;margin:-6px 0 14px;">Select the warranty &amp; service package that's right for you.</div>
         <div class="hessqf-tier-cards-grid" id="hessqfPackageGrid"></div>
       </div>

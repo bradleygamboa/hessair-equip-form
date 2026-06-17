@@ -486,13 +486,14 @@
      folder, so they can be re-uploaded without re-deploying the plugin.
      Ruud and "Ruud (Jobber)" share the same photo. Returns '' if the brand
      is unknown so callers can skip rendering an <img>. */
-  const BRAND_IMG_BASE = 'https://hessair.com/wp-content/uploads/2026/05/';
   function brandImageUrl(brand) {
+    const base = (window.hessqfData && hessqfData.assetsUrl) ? hessqfData.assetsUrl + 'images/' : '';
+    if (!base) return '';
     const b = String(brand || '').toLowerCase();
-    if (b.indexOf('carrier') === 0)  return BRAND_IMG_BASE + 'carrier.png';
-    if (b.indexOf('trane')   === 0)  return BRAND_IMG_BASE + 'trane.png';
-    if (b.indexOf('runtru')  === 0)  return BRAND_IMG_BASE + 'runtru.png';
-    if (b.indexOf('ruud')    === 0)  return BRAND_IMG_BASE + 'ruud.png';
+    if (b.indexOf('carrier') === 0)  return base + 'carrier.png';
+    if (b.indexOf('trane')   === 0)  return base + 'trane.png';
+    if (b.indexOf('runtru')  === 0)  return base + 'runtru.jpg';
+    if (b.indexOf('ruud')    === 0)  return base + 'ruud.png';
     return '';
   }
 

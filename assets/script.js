@@ -1,14 +1,14 @@
 /* ════════════════════════════════════════
    Hess Air Quote Form v2 — WordPress Plugin Script
    Reads systems + config from inline JSON;
-   hessqfData.ajaxUrl / nonce injected by wp_localize_script().
+   hessqfeData.ajaxUrl / nonce injected by wp_localize_script().
 ════════════════════════════════════════ */
 (function () {
   'use strict';
 
   /* ── Boot: parse inline JSON ── */
-  const dataEl   = document.getElementById('hessqfSystemsData');
-  const configEl = document.getElementById('hessqfConfigData');
+  const dataEl   = document.getElementById('hessqfeSystemsData');
+  const configEl = document.getElementById('hessqfeConfigData');
   if (!dataEl || !configEl) return;
 
   let SYSTEMS = [];
@@ -26,35 +26,6 @@
     { tier: 1, label: 'Contractor Value',stars: '★',    cls: 'hqf-gray',   badgeCls: 'hqf-t1' },
   ];
 
-  /* Value-package discounts applied to the unit (system) price.
-     Tier 1 Contractor Value = 45% off, Tier 2 Enhanced Value = 15% off,
-     Tier 3 Popular Value = 10% off, Tier 4 Preferred Value = no discount. */
-  const TIER_DISCOUNT_PCT = { 1: 0.45, 2: 0.15, 3: 0.10, 4: 0 };
-  function tierDiscountPct(tier) {
-    return TIER_DISCOUNT_PCT[Number(tier)] || 0;
-  }
-
-  /* Tier features — keyed by tier number (4=Best, 3=Smart Choice, 2=Better, 1=Basic) */
-  const TIER_FEATURES = [
-    { label: 'Factory Limited Parts Warranty', values: { 4: '10 year', 3: '10 year', 2: '10 year', 1: '5 yr or 10 yr owner register' } },
-    { label: '"Insured" Labor Coverage',       values: { 4: '10 years**', 3: '5 years**', 2: '3 years**', 1: '1st year covered by Hess Air' } },
-    { label: 'Tax & Basic Installation included', values: { 4: 'yes', 3: 'yes', 2: 'yes', 1: '' } },
-    { label: 'Installed by Hess Techs',        values: { 4: 'yes', 3: 'yes', 2: 'yes', 1: '' } },
-    { label: 'City Permit included',           values: { 4: 'yes', 3: 'yes', 2: 'yes', 1: '' } },
-    { label: 'Money Back Guarantee',           values: { 4: 'yes', 3: 'yes', 2: 'yes', 1: '' } },
-    { label: 'Lemon Guarantee',                values: { 4: 'yes', 3: 'yes', 2: '',    1: '' } },
-    { label: 'Home Comfort Analysis (MJ)',     values: { 4: 'yes', 3: 'yes', 2: '',    1: '' } },
-    { label: 'True 24/7 Customer Support',     values: { 4: 'yes', 3: 'yes', 2: 'yes', 1: '' } },
-    { label: 'Indoor Unit Antifungal Coating', values: { 4: 'yes', 3: '',    2: '',    1: '' } },
-    { label: 'Premium Wi-Fi Thermostat',       values: { 4: 'yes', 3: 'yes', 2: '',    1: '' } },
-    { label: '24v UV Air Purifier',            values: { 4: 'yes', 3: 'yes', 2: 'yes', 1: '' } },
-    { label: 'MERV 11 Filtration',             values: { 4: 'yes', 3: 'yes', 2: '',    1: '' } },
-    { label: "Home's HVAC Survey",             values: { 4: 'yes', 3: 'yes', 2: '',    1: '' } },
-    { label: 'Dedicated Project Supervisor',   values: { 4: 'yes', 3: 'yes', 2: 'yes', 1: '' } },
-    { label: 'Quality Control Check List',     values: { 4: 'yes', 3: 'yes', 2: '',    1: '' } },
-    { label: 'System & Wty Documents Provided',values: { 4: 'yes', 3: 'yes', 2: 'yes', 1: 'yes' } },
-  ];
-  const CHECK_VALUES = new Set(['yes', 'y', 'true', '1', '✓', 'check', 'checked', 'included']);
 
   /* ── State ──
      filtered stays empty until the user picks at least one filter value. The
@@ -66,7 +37,6 @@
     sortAsc:         true,
     comparedUnits:   [],   // array of system objects user added via "Compare"
     selectedUnit:    null, // single system from comparedUnits chosen for the quote
-    selectedPackage: null, // tier number 1-4 chosen from the static value-package table
     quoteNumber:     null,
   };
 
@@ -177,9 +147,9 @@
 
   /* ── Filters ── */
   function applyFilters() {
-    const brand    = (document.getElementById('hessqfFilterBrand')?.value    || '');
-    const system   = (document.getElementById('hessqfFilterSystem')?.value   || '');
-    const capacity = (document.getElementById('hessqfFilterCapacity')?.value || '');
+    const brand    = (document.getElementById('hessqfeFilterBrand')?.value    || '');
+    const system   = (document.getElementById('hessqfeFilterSystem')?.value   || '');
+    const capacity = (document.getElementById('hessqfeFilterCapacity')?.value || '');
 
     state.hasFilter = !!(brand || system || capacity);
 
@@ -194,7 +164,7 @@
       });
     }
 
-    const el = document.getElementById('hessqfAlertNoResults');
+    const el = document.getElementById('hessqfeAlertNoResults');
     if (el) el.classList.toggle('hessqf-show', state.hasFilter && state.filtered.length === 0);
     renderTable();
   }
@@ -211,21 +181,20 @@
     state.hasFilter       = false;
     state.comparedUnits   = [];
     state.selectedUnit    = null;
-    state.selectedPackage = null;
     state.sortKey         = null;
     state.sortAsc         = true;
 
     // Hide downstream sections (compare + package tables, selection bar)
-    const cardsSec = document.getElementById('hessqfTierCardsSection');
-    const pkgSec   = document.getElementById('hessqfPackageSection');
-    const barSec   = document.getElementById('hessqfSelectionBarSection');
+    const cardsSec = document.getElementById('hessqfeTierCardsSection');
+    const pkgSec   = document.getElementById('hessqfePackageSection');
+    const barSec   = document.getElementById('hessqfeSelectionBarSection');
     if (cardsSec) cardsSec.style.display = 'none';
     if (pkgSec)   pkgSec.style.display   = 'none';
     if (barSec)   barSec.style.display   = 'none';
 
     // Clear out grids so stale content doesn't flash on next open
-    const grid    = document.getElementById('hessqfTierCardsGrid');
-    const pkgGrid = document.getElementById('hessqfPackageGrid');
+    const grid    = document.getElementById('hessqfeTierCardsGrid');
+    const pkgGrid = document.getElementById('hessqfePackageGrid');
     if (grid)    grid.innerHTML    = '';
     if (pkgGrid) pkgGrid.innerHTML = '';
     resetMatrixState();
@@ -234,14 +203,14 @@
     populateCostAdjustments();
 
     // Clear selection-bar display values
-    ['hessqfSelectedUnitDisplay','hessqfSelectedTierDisplay','hessqfSelectedPriceDisplay','hessqfSelectedSeer2Display'].forEach(id => {
+    ['hessqfSelectedUnitDisplay','hessqfSelectedPriceDisplay','hessqfSelectedSeer2Display'].forEach(id => {
       const e = document.getElementById(id);
       if (e) e.textContent = '—';
     });
 
     // Hide alerts
-    document.getElementById('hessqfAlertNoResults')  ?.classList.remove('hessqf-show');
-    document.getElementById('hessqfAlertNoSelection')?.classList.remove('hessqf-show');
+    document.getElementById('hessqfeAlertNoResults')  ?.classList.remove('hessqf-show');
+    document.getElementById('hessqfeAlertNoSelection')?.classList.remove('hessqf-show');
 
     renderTable();
   }
@@ -267,7 +236,7 @@
 
   /* ── Render table ── */
   function renderTableHead() {
-    const head = document.getElementById('hessqfProductTableHead');
+    const head = document.getElementById('hessqfeProductTableHead');
     if (!head) return;
     const cols = visibleColumns();
     head.innerHTML = cols.map(c => {
@@ -283,13 +252,13 @@
 
   function renderTable() {
     renderTableHead();
-    const tbody = document.getElementById('hessqfProductTableBody');
+    const tbody = document.getElementById('hessqfeProductTableBody');
     if (!tbody) return;
 
     const cols = visibleColumns();
     const colCount = cols.length + 1;
 
-    const financingInfo = document.getElementById('hessqfFinancingInfo');
+    const financingInfo = document.getElementById('hessqfeFinancingInfo');
 
     // Prompt state — user hasn't picked any filter yet
     if (!state.hasFilter) {
@@ -337,7 +306,7 @@
      whole table always fits its container width. We only switch columns to
      explicit pixel widths once the user begins dragging a resize handle. */
   function initResizableColumns() {
-    const table = document.getElementById('hessqfProductTable');
+    const table = document.getElementById('hessqfeProductTable');
     if (!table) return;
     if (window.innerWidth <= 700) return;
 
@@ -397,22 +366,19 @@
 
     renderTable();
     buildCompareTable();
-    buildPackageTable();
     populateCostAdjustments();
     updateSectionVisibility();
     updateSelectionBar();
   }
 
-  /* ── Show/hide the Value Package + Cost Adjustment/Selection Bar
+  /* ── Show/hide the Cost Adjustment/Selection Bar
      sections based on whether units are compared / a unit is selected. ── */
   function updateSectionVisibility() {
-    const cardsSec = document.getElementById('hessqfTierCardsSection');
-    const pkgSec   = document.getElementById('hessqfPackageSection');
-    const barSec   = document.getElementById('hessqfSelectionBarSection');
+    const cardsSec = document.getElementById('hessqfeTierCardsSection');
+    const barSec   = document.getElementById('hessqfeSelectionBarSection');
     const hasAny   = state.comparedUnits.length > 0;
     const hasSel   = !!state.selectedUnit;
     if (cardsSec) cardsSec.style.display = hasAny ? 'block' : 'none';
-    if (pkgSec)   pkgSec.style.display   = hasSel ? 'block' : 'none';
     if (barSec)   barSec.style.display   = hasSel ? 'block' : 'none';
   }
 
@@ -427,14 +393,7 @@
   ──────────────────────────────────────────────────────────────── */
   const matrixState = {};
 
-  function renderFeatureCell(val) {
-    const raw = (val == null ? '' : String(val)).trim();
-    if (raw === '') return '<span class="hqf-feat-empty">—</span>';
-    if (CHECK_VALUES.has(raw.toLowerCase())) return '<span class="hqf-feat-check" aria-label="Included">✓</span>';
-    return `<span class="hqf-feat-text">${escapeHtml(raw)}</span>`;
-  }
-
-  function parseMoney(v) {
+function parseMoney(v) {
     if (v == null) return 0;
     const n = parseFloat(String(v).replace(/[^0-9.\-]/g, ''));
     return Number.isFinite(n) ? n : 0;
@@ -472,9 +431,7 @@
   function totalFor(unitId) {
     const s = matrixState[unitId];
     if (!s) return 0;
-    const discount    = tierDiscountPct(state.selectedPackage);
-    const systemPrice = s.system_price * (1 - discount);
-    return (systemPrice + s.installation + s.options) - s.tradeIn;
+    return (s.system_price + s.installation + s.options) - s.tradeIn;
   }
 
   function unitDisplayName(u) {
@@ -487,7 +444,7 @@
      Ruud and "Ruud (Jobber)" share the same photo. Returns '' if the brand
      is unknown so callers can skip rendering an <img>. */
   function brandImageUrl(brand) {
-    const base = (window.hessqfData && hessqfData.assetsUrl) ? hessqfData.assetsUrl + 'images/' : '';
+    const base = (window.hessqfeData && hessqfeData.assetsUrl) ? hessqfeData.assetsUrl + 'images/' : '';
     if (!base) return '';
     const b = String(brand || '').toLowerCase();
     if (b.indexOf('carrier') === 0)  return base + 'carrier.png';
@@ -499,7 +456,7 @@
 
   /* ── Top table: per-unit compare ── */
   function buildCompareTable() {
-    const grid = document.getElementById('hessqfTierCardsGrid');
+    const grid = document.getElementById('hessqfeTierCardsGrid');
     if (!grid) return;
 
     const units = state.comparedUnits;
@@ -593,75 +550,15 @@
   }
 
   /* ── Bottom table: static value-package features ── */
-  function buildPackageTable() {
-    const grid = document.getElementById('hessqfPackageGrid');
-    if (!grid) return;
-
-    const colHeader = TIER_META.map(meta => {
-      return `<th class="hqf-tc-col-head hqf-tc-col-${meta.tier} ${meta.cls}">
-        <div class="hqf-tc-tier-label">${escapeHtml(meta.label.toUpperCase())}</div>
-      </th>`;
-    }).join('');
-
-    const featureRows = TIER_FEATURES.map(f => `<tr class="hqf-tc-feat-row">
-      <th class="hqf-tc-label hqf-tc-feat-label">${escapeHtml(f.label)}</th>
-      ${TIER_META.map(meta => {
-        const v = f.values && f.values[meta.tier] !== undefined ? f.values[meta.tier] : '';
-        return `<td class="hqf-tc-cell hqf-tc-col-${meta.tier} hqf-tc-feat-cell">${renderFeatureCell(v)}</td>`;
-      }).join('')}
-    </tr>`).join('');
-
-    const sel = state.selectedUnit;
-    const ms = sel && matrixState[sel._id];
-    const systemPrice = ms ? ms.system_price : null;
-    const priceRow = `<tr class="hqf-tc-feat-row">
-      <th class="hqf-tc-label hqf-tc-feat-label">Price with Selected Package</th>
-      ${TIER_META.map(meta => {
-        const display = systemPrice == null ? '—' : fmt$(systemPrice * (1 - tierDiscountPct(meta.tier)));
-        return `<td class="hqf-tc-cell hqf-tc-col-${meta.tier} hqf-tc-feat-cell">${escapeHtml(display)}</td>`;
-      }).join('')}
-    </tr>`;
-
-    const selectRow = `<tr class="hqf-tc-select-row">
-      <td></td>
-      ${TIER_META.map(meta => {
-        const isSel = state.selectedPackage === meta.tier;
-        return `<td class="hqf-tc-cell hqf-tc-col-${meta.tier}">
-          <button type="button" class="hessqf-btn hessqf-btn-pink hessqf-btn-sm hqf-pkg-select-btn" data-tier="${meta.tier}" ${isSel ? 'disabled' : ''}>
-            ${isSel ? '&#10003; Selected' : 'Select'}
-          </button>
-        </td>`;
-      }).join('')}
-    </tr>`;
-
-    grid.innerHTML = `<div class="hqf-tc-wrap">
-      <table class="hqf-tc">
-        <thead>
-          <tr><th class="hqf-tc-corner"></th>${colHeader}</tr>
-        </thead>
-        <tbody>
-          ${featureRows}
-          ${priceRow}
-          ${selectRow}
-        </tbody>
-      </table>
-    </div>`;
-
-    grid.querySelectorAll('.hqf-pkg-select-btn').forEach(btn => {
-      btn.addEventListener('click', () => selectPackage(Number(btn.dataset.tier)));
-    });
-  }
-
   function selectCompareUnit(sysId) {
     const u = state.comparedUnits.find(x => x._id === sysId);
     if (!u) return;
     state.selectedUnit = u;
     buildCompareTable();
-    buildPackageTable();
     populateCostAdjustments();
     updateSectionVisibility();
     updateSelectionBar();
-    const el = document.getElementById('hessqfAlertNoSelection');
+    const el = document.getElementById('hessqfeAlertNoSelection');
     if (el) el.classList.remove('hessqf-show');
   }
 
@@ -692,7 +589,7 @@
   }
 
   function updateOptionsInputDisplay() {
-    const inp = document.getElementById('hessqfAdjOptions');
+    const inp = document.getElementById('hessqfeAdjOptions');
     if (!inp) return;
     const u = state.selectedUnit;
     if (!u) { inp.value = ''; return; }
@@ -702,7 +599,7 @@
   }
 
   function updateInstallationInputDisplay() {
-    const inp = document.getElementById('hessqfAdjInstallation');
+    const inp = document.getElementById('hessqfeAdjInstallation');
     if (!inp) return;
     const u = state.selectedUnit;
     if (!u) { inp.value = ''; return; }
@@ -712,7 +609,7 @@
   }
 
   function renderOptionsList() {
-    const listEl = document.getElementById('hessqfOptionsList');
+    const listEl = document.getElementById('hessqfeOptionsList');
     if (!listEl) return;
     const u = state.selectedUnit;
     const items = (u && matrixState[u._id] && matrixState[u._id].optionsList) || [];
@@ -739,7 +636,7 @@
   }
 
   function renderInstallationList() {
-    const listEl = document.getElementById('hessqfInstallationList');
+    const listEl = document.getElementById('hessqfeInstallationList');
     if (!listEl) return;
     const u = state.selectedUnit;
     const items = (u && matrixState[u._id] && matrixState[u._id].installationList) || [];
@@ -804,16 +701,16 @@
       inp.value = val ? formatMoneyDisplay(val) : '';
     });
 
-    const addBtn  = document.getElementById('hessqfAddOptionBtn');
-    const addForm = document.getElementById('hessqfAddOptionForm');
+    const addBtn  = document.getElementById('hessqfeAddOptionBtn');
+    const addForm = document.getElementById('hessqfeAddOptionForm');
     if (addBtn) addBtn.disabled = !u;
     if (addForm && !u) addForm.style.display = 'none';
 
     updateOptionsInputDisplay();
     renderOptionsList();
 
-    const installAddBtn  = document.getElementById('hessqfAddInstallationBtn');
-    const installAddForm = document.getElementById('hessqfAddInstallationForm');
+    const installAddBtn  = document.getElementById('hessqfeAddInstallationBtn');
+    const installAddForm = document.getElementById('hessqfeAddInstallationForm');
     if (installAddBtn) installAddBtn.disabled = !u;
     if (installAddForm && !u) installAddForm.style.display = 'none';
 
@@ -851,12 +748,12 @@
     });
 
     // Add Option (line items)
-    const addBtn    = document.getElementById('hessqfAddOptionBtn');
-    const addForm   = document.getElementById('hessqfAddOptionForm');
-    const labelInp  = document.getElementById('hessqfNewOptionLabel');
-    const costInp   = document.getElementById('hessqfNewOptionCost');
-    const saveBtn   = document.getElementById('hessqfNewOptionAdd');
-    const cancelBtn = document.getElementById('hessqfNewOptionCancel');
+    const addBtn    = document.getElementById('hessqfeAddOptionBtn');
+    const addForm   = document.getElementById('hessqfeAddOptionForm');
+    const labelInp  = document.getElementById('hessqfeNewOptionLabel');
+    const costInp   = document.getElementById('hessqfeNewOptionCost');
+    const saveBtn   = document.getElementById('hessqfeNewOptionAdd');
+    const cancelBtn = document.getElementById('hessqfeNewOptionCancel');
 
     const closeAddForm = () => {
       if (labelInp) labelInp.value = '';
@@ -901,12 +798,12 @@
     });
 
     // Add Installation/Procurement item (line items)
-    const installAddBtn    = document.getElementById('hessqfAddInstallationBtn');
-    const installAddForm   = document.getElementById('hessqfAddInstallationForm');
-    const installLabelInp  = document.getElementById('hessqfNewInstallationLabel');
-    const installCostInp   = document.getElementById('hessqfNewInstallationCost');
-    const installSaveBtn   = document.getElementById('hessqfNewInstallationAdd');
-    const installCancelBtn = document.getElementById('hessqfNewInstallationCancel');
+    const installAddBtn    = document.getElementById('hessqfeAddInstallationBtn');
+    const installAddForm   = document.getElementById('hessqfeAddInstallationForm');
+    const installLabelInp  = document.getElementById('hessqfeNewInstallationLabel');
+    const installCostInp   = document.getElementById('hessqfeNewInstallationCost');
+    const installSaveBtn   = document.getElementById('hessqfeNewInstallationAdd');
+    const installCancelBtn = document.getElementById('hessqfeNewInstallationCancel');
 
     const closeInstallForm = () => {
       if (installLabelInp) installLabelInp.value = '';
@@ -996,14 +893,6 @@
     });
   }
 
-  function selectPackage(tierNum) {
-    state.selectedPackage = tierNum;
-    buildPackageTable();
-    updateSelectionBar();
-    const el = document.getElementById('hessqfAlertNoSelection');
-    if (el) el.classList.remove('hessqf-show');
-  }
-
   /* ── Selection Bar ── */
   function currentTotalInvestment() {
     const p = state.selectedUnit;
@@ -1014,17 +903,9 @@
 
   function updateSelectionBar() {
     const p = state.selectedUnit;
-    const pkg = state.selectedPackage;
     const setEl = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
 
     setEl('hessqfSelectedUnitDisplay',  p ? unitDisplayName(p) : '—');
-
-    if (pkg != null) {
-      const pmeta = tierMetaFor(pkg);
-      setEl('hessqfSelectedTierDisplay', pmeta.label || '—');
-    } else {
-      setEl('hessqfSelectedTierDisplay', '—');
-    }
 
     if (!p) {
       setEl('hessqfSelectedPriceDisplay', '—');
@@ -1041,43 +922,37 @@
 
   /* ── Step Navigation ── */
   function goToStep2() {
-    if (!state.selectedUnit || state.selectedPackage == null) {
-      const el = document.getElementById('hessqfAlertNoSelection');
+    if (!state.selectedUnit) {
+      const el = document.getElementById('hessqfeAlertNoSelection');
       if (el) el.classList.add('hessqf-show');
-      document.getElementById('hessqfSelectionBarSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById('hessqfeSelectionBarSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
 
     if (!state.quoteNumber) state.quoteNumber = generateQuoteNumber();
-    const qnEl = document.getElementById('hessqfQuoteNumberDisplay');
+    const qnEl = document.getElementById('hessqfeQuoteNumberDisplay');
     if (qnEl) qnEl.textContent = state.quoteNumber;
 
-    const p    = state.selectedUnit;
-    const meta = tierMetaFor(state.selectedPackage); // package = chosen value tier
+    const p = state.selectedUnit;
     if (!matrixState[p._id]) initMatrixStateFor(p);
     const s = matrixState[p._id] || { outdoor:0, indoor:0, system_price:0, installation:0, options:0, down:0, tradeIn:0 };
-    const systemPrice    = s.system_price || (s.outdoor + s.indoor);
-    const discountPct    = tierDiscountPct(state.selectedPackage);
-    const discountAmount = systemPrice * discountPct;
-    const discSystemPrice = systemPrice - discountAmount;
-    const total = discSystemPrice + s.installation + s.options - s.tradeIn;
+    const total = s.system_price + s.installation + s.options - s.tradeIn;
 
-    const summaryEl = document.getElementById('hessqfStep2Summary');
+    const summaryEl = document.getElementById('hessqfeStep2Summary');
     if (summaryEl) {
       const withNotes = (value, items) => (items && items.length) ? `${value} (${items.join(', ')})` : value;
       const rows = [
-        ['Hess Associate',  document.getElementById('hessqfFieldAssociate')?.value.trim() || '—'],
-        ['Existing Unit Brand',   document.getElementById('hessqfFieldExistingBrand')?.value.trim() || '—'],
-        ['Existing Model #',      document.getElementById('hessqfFieldExistingModel')?.value.trim() || '—'],
-        ['Existing Serial #',     document.getElementById('hessqfFieldExistingSerial')?.value.trim() || '—'],
-        ['Attic / Closet Unit',   (document.querySelector('input[name="hessqfExistingAtticCloset"]:checked') || {}).value || 'None'],
+        ['Hess Associate',  document.getElementById('hessqfeFieldAssociate')?.value.trim() || '—'],
+        ['Existing Unit Brand',   document.getElementById('hessqfeFieldExistingBrand')?.value.trim() || '—'],
+        ['Existing Model #',      document.getElementById('hessqfeFieldExistingModel')?.value.trim() || '—'],
+        ['Existing Serial #',     document.getElementById('hessqfeFieldExistingSerial')?.value.trim() || '—'],
+        ['Attic / Closet Unit',   (document.querySelector('input[name="hessqfeExistingAtticCloset"]:checked') || {}).value || 'None'],
         ['Quote Number',     state.quoteNumber],
         ['Selected Unit',    unitDisplayName(p)],
         ['Brand',            p.brand || '—'],
         ['System Type',      p.system || '—'],
         ['Capacity',         p.capacity ? (p.capacity + ' Ton') : '—'],
         ['Cap. Stg.',        p.stage_label || p.stage || '—'],
-        ['HESSeRized Value Package', meta.label || '—'],
         ['SEER2',            p.seer2 != null ? p.seer2 : '—'],
         ['Outdoor Unit',     p.outdoor_model || '—'],
         ['Indoor Unit',      p.indoor_model || '—'],
@@ -1102,18 +977,18 @@
   function goToStep1() { showStep(1); }
 
   function showStep(n) {
-    document.getElementById('hessqfStepPanel1')?.classList.toggle('active', n === 1);
-    document.getElementById('hessqfStepPanel2')?.classList.toggle('active', n === 2);
-    const topInfo = document.getElementById('hessqfTopInfoCard');
+    document.getElementById('hessqfeStepPanel1')?.classList.toggle('active', n === 1);
+    document.getElementById('hessqfeStepPanel2')?.classList.toggle('active', n === 2);
+    const topInfo = document.getElementById('hessqfeTopInfoCard');
     if (topInfo) topInfo.style.display = (n === 2) ? 'none' : '';
-    document.getElementById('hessqfStep1Pill')?.classList.toggle('active', n === 1);
-    document.getElementById('hessqfStep1Pill')?.classList.toggle('done',   n === 2);
-    document.getElementById('hessqfStep2Pill')?.classList.toggle('active', n === 2);
+    document.getElementById('hessqfeStep1Pill')?.classList.toggle('active', n === 1);
+    document.getElementById('hessqfeStep1Pill')?.classList.toggle('done',   n === 2);
+    document.getElementById('hessqfeStep2Pill')?.classList.toggle('active', n === 2);
     window.scrollTo({ top: 0, behavior: 'smooth' });
     // Re-measure the signature pad now that step 2 is laid out (it would have
     // been 0×0 while hidden, which throws off cursor mapping).
-    if (n === 2 && window.hessqfSignaturePad && window.hessqfSignaturePad.resize) {
-      requestAnimationFrame(() => window.hessqfSignaturePad.resize());
+    if (n === 2 && window.hessqfeSignaturePad && window.hessqfeSignaturePad.resize) {
+      requestAnimationFrame(() => window.hessqfeSignaturePad.resize());
     }
   }
 
@@ -1143,42 +1018,38 @@
     const v5 = validateField('hessqfFieldAssociate','hessqfErrAssociate','Hess associate name is required.');
     if (!v1 || !v2 || !v3 || !v4 || !v5) return;
 
-    const p     = state.selectedUnit;
-    const meta  = tierMetaFor(state.selectedPackage);
+    const p = state.selectedUnit;
     if (!matrixState[p._id]) initMatrixStateFor(p);
     const ms = matrixState[p._id] || { outdoor:0, indoor:0, system_price:0, installation:0, options:0, down:0, tradeIn:0 };
-    const msSystemPrice  = ms.system_price || (ms.outdoor + ms.indoor);
-    const discountPct    = tierDiscountPct(state.selectedPackage);
-    const discountAmount = msSystemPrice * discountPct;
-    const discSystemPrice = msSystemPrice - discountAmount;
-    const totalInvestment = discSystemPrice + ms.installation + ms.options - ms.tradeIn;
+    const msSystemPrice   = ms.system_price || (ms.outdoor + ms.indoor);
+    const totalInvestment = msSystemPrice + ms.installation + ms.options - ms.tradeIn;
     const amountFinanced  = totalInvestment - ms.down;
     const optionsBreakdown      = (ms.optionsList || []).map(o => `${o.label}: ${fmt$(o.amount)}`).join('; ');
     const installationBreakdown = (ms.installationList || []).map(o => `${o.label}: ${fmt$(o.amount)}`).join('; ');
 
-    const associate        = document.getElementById('hessqfFieldAssociate').value.trim();
-    const existingBrand    = document.getElementById('hessqfFieldExistingBrand')?.value.trim()   || '';
-    const existingModel    = document.getElementById('hessqfFieldExistingModel')?.value.trim()   || '';
-    const existingSerial   = document.getElementById('hessqfFieldExistingSerial')?.value.trim()  || '';
-    const existingAtticCloset = (document.querySelector('input[name="hessqfExistingAtticCloset"]:checked') || {}).value || 'None';
-    const name      = document.getElementById('hessqfFieldName').value.trim();
-    const phone     = document.getElementById('hessqfFieldPhone').value.trim();
-    const email     = document.getElementById('hessqfFieldEmail').value.trim();
-    const address   = document.getElementById('hessqfFieldAddress').value.trim();
-    const schedule  = document.getElementById('hessqfFieldSchedule').value;
-    const comments  = document.getElementById('hessqfFieldComments').value.trim();
-    const financing0pct = (document.querySelector('input[name="hessqfFinancing0pct"]:checked') || {}).value || '';
-    const signature = (window.hessqfSignaturePad && window.hessqfSignaturePad.getDataURL()) || '';
+    const associate        = document.getElementById('hessqfeFieldAssociate').value.trim();
+    const existingBrand    = document.getElementById('hessqfeFieldExistingBrand')?.value.trim()   || '';
+    const existingModel    = document.getElementById('hessqfeFieldExistingModel')?.value.trim()   || '';
+    const existingSerial   = document.getElementById('hessqfeFieldExistingSerial')?.value.trim()  || '';
+    const existingAtticCloset = (document.querySelector('input[name="hessqfeExistingAtticCloset"]:checked') || {}).value || 'None';
+    const name      = document.getElementById('hessqfeFieldName').value.trim();
+    const phone     = document.getElementById('hessqfeFieldPhone').value.trim();
+    const email     = document.getElementById('hessqfeFieldEmail').value.trim();
+    const address   = document.getElementById('hessqfeFieldAddress').value.trim();
+    const schedule  = document.getElementById('hessqfeFieldSchedule').value;
+    const comments  = document.getElementById('hessqfeFieldComments').value.trim();
+    const financing0pct = (document.querySelector('input[name="hessqfeFinancing0pct"]:checked') || {}).value || '';
+    const signature = (window.hessqfeSignaturePad && window.hessqfeSignaturePad.getDataURL()) || '';
 
-    const submitBtn = document.getElementById('hessqfSubmitBtn');
+    const submitBtn = document.getElementById('hessqfeSubmitBtn');
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting…'; }
 
-    const errorEl = document.getElementById('hessqfAlertSubmitError');
+    const errorEl = document.getElementById('hessqfeAlertSubmitError');
     if (errorEl) errorEl.classList.remove('hessqf-show');
 
     const fd = new FormData();
-    fd.append('action',       'hessqf_submit');
-    fd.append('nonce',        hessqfData.nonce);
+    fd.append('action',       'hessqfe_submit');
+    fd.append('nonce',        hessqfeData.nonce);
     fd.append('quoteNumber',  state.quoteNumber);
     fd.append('associate',    associate);
     fd.append('existingBrand',       existingBrand);
@@ -1198,14 +1069,11 @@
     fd.append('system',       p.system   || '');
     fd.append('capacity',     p.capacity ? (p.capacity + ' Ton') : '');
     fd.append('unitTier',     p.tier ? String(p.tier) : '');
-    fd.append('valuePackage', meta.label || '');
-    fd.append('tier',         meta.label || ''); // legacy alias
+    fd.append('valuePackage', '');
+    fd.append('tier',         '');
     fd.append('seer2',        p.seer2 != null ? String(p.seer2) : '');
     fd.append('price',        fmt$(p.price));
     fd.append('systemPrice',  fmt$(msSystemPrice));
-    fd.append('valuePackageDiscountPct', discountPct ? String(Math.round(discountPct * 100)) + '%' : '');
-    fd.append('valuePackageDiscount',    discountAmount ? fmt$(discountAmount) : '');
-    fd.append('discountedSystemPrice',   fmt$(discSystemPrice));
     fd.append('installation', fmt$(ms.installation));
     fd.append('installationBreakdown', installationBreakdown);
     fd.append('options',      fmt$(ms.options));
@@ -1223,12 +1091,12 @@
     fd.append('stage',        p.stage_label || p.stage || '');
     fd.append('signature',    signature);
 
-    fetch(hessqfData.ajaxUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
+    fetch(hessqfeData.ajaxUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
       .then(r => r.json())
       .then(data => {
         if (data && data.success) {
           const emailSent = data.data?.customerEmail !== false;
-          showConfirmation(name, email, address, p, meta, schedule, comments, emailSent);
+          showConfirmation(name, email, address, p, {}, schedule, comments, emailSent);
         } else {
           if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Quote →'; }
           if (errorEl) {
@@ -1249,9 +1117,9 @@
   /* ── Confirmation ── */
   function showConfirmation(name, email, address, p, meta, schedule, comments, emailSent) {
     const qn = state.quoteNumber;
-    const qnEl    = document.getElementById('hessqfConfirmQuoteNumber');
-    const noteEl  = document.getElementById('hessqfConfirmEmailNote');
-    const detailEl= document.getElementById('hessqfConfirmDetails');
+    const qnEl    = document.getElementById('hessqfeConfirmQuoteNumber');
+    const noteEl  = document.getElementById('hessqfeConfirmEmailNote');
+    const detailEl= document.getElementById('hessqfeConfirmDetails');
 
     if (qnEl) qnEl.textContent = qn;
     if (noteEl) {
@@ -1272,7 +1140,6 @@
         ['Type',           p.system || '—'],
         ['Capacity',       p.capacity ? (p.capacity + ' Ton') : '—'],
         ['Cap. Stg.',      p.stage_label || p.stage || '—'],
-        ['Value Package',  meta.label || '—'],
         ['SEER2',          p.seer2 != null ? p.seer2 : '—'],
         ['Price',          fmt$(p.price)],
         ['Monthly',        fmtMo(p.monthly)],
@@ -1280,9 +1147,9 @@
       ];
 
       const contactRows = [
-        ['Hess Associate', document.getElementById('hessqfFieldAssociate').value.trim()],
+        ['Hess Associate', document.getElementById('hessqfeFieldAssociate').value.trim()],
         ['Name',    name],
-        ['Phone',   document.getElementById('hessqfFieldPhone').value.trim()],
+        ['Phone',   document.getElementById('hessqfeFieldPhone').value.trim()],
         ['Email',   email],
         ['Address', address],
         ['Timing',  schedule],
@@ -1300,18 +1167,18 @@
         </div>`;
     }
 
-    document.getElementById('hessqfStepPanel2')?.classList.remove('active');
-    document.getElementById('hessqfStep2Pill')?.classList.remove('active');
-    document.getElementById('hessqfStep2Pill')?.classList.add('done');
-    document.getElementById('hessqfConfirmationPanel')?.classList.add('hessqf-show');
+    document.getElementById('hessqfeStepPanel2')?.classList.remove('active');
+    document.getElementById('hessqfeStep2Pill')?.classList.remove('active');
+    document.getElementById('hessqfeStep2Pill')?.classList.add('done');
+    document.getElementById('hessqfeConfirmationPanel')?.classList.add('hessqf-show');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   /* ── Signature Pad ──
      Lightweight HTML5 canvas signature capture (mouse + touch). Exposes a
-     small API on window.hessqfSignaturePad: { isEmpty, clear, getDataURL }. */
+     small API on window.hessqfeSignaturePad: { isEmpty, clear, getDataURL }. */
   function initSignaturePad() {
-    const canvas = document.getElementById('hessqfSignaturePad');
+    const canvas = document.getElementById('hessqfeSignaturePad');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
 
@@ -1425,9 +1292,9 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       dirty = false;
     }
-    document.getElementById('hessqfSignatureClear')?.addEventListener('click', clear);
+    document.getElementById('hessqfeSignatureClear')?.addEventListener('click', clear);
 
-    window.hessqfSignaturePad = {
+    window.hessqfeSignaturePad = {
       isEmpty:    () => !dirty,
       clear:      clear,
       resize:     resize,
@@ -1447,11 +1314,11 @@
       if (el) el.addEventListener('change', applyFilters);
     });
 
-    document.getElementById('hessqfFilterSearchBtn')?.addEventListener('click', applyFilters);
-    document.getElementById('hessqfFilterClearBtn') ?.addEventListener('click', clearFilters);
-    document.getElementById('hessqfGoToStep2Btn')   ?.addEventListener('click', goToStep2);
-    document.getElementById('hessqfBackBtn')        ?.addEventListener('click', goToStep1);
-    document.getElementById('hessqfSubmitBtn')      ?.addEventListener('click', submitForm);
+    document.getElementById('hessqfeFilterSearchBtn')?.addEventListener('click', applyFilters);
+    document.getElementById('hessqfeFilterClearBtn') ?.addEventListener('click', clearFilters);
+    document.getElementById('hessqfeGoToStep2Btn')   ?.addEventListener('click', goToStep2);
+    document.getElementById('hessqfeBackBtn')        ?.addEventListener('click', goToStep1);
+    document.getElementById('hessqfeSubmitBtn')      ?.addEventListener('click', submitForm);
 
     // Auto-populate the Step 2 contact fields from the customer info collected
     // at the top of the form. The Step 2 fields remain editable afterward.

@@ -1,49 +1,49 @@
 <?php
 /**
- * Plugin Name:       Hess Air Quote Form (v2)
- * Description:       Multi-step HVAC quote form. Pulls product data from a Google Sheet (published CSV) and emails quotes via Mailgun.
+ * Plugin Name:       Hess Air Equipment Form
+ * Description:       Multi-step HVAC equipment quote form (no value package). Pulls product data from a Google Sheet (published CSV) and emails quotes via Mailgun.
  * Version:           3.5.42
  * Author:            Hess Air
  * Requires at least: 5.8
  * Requires PHP:      7.4
- * Text Domain:       hess-quote-form
+ * Text Domain:       hess-equip-form
  */
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'HESSQF_VERSION',    '3.5.42' );
-define( 'HESSQF_SLUG',       'hess-quote-form' );
-define( 'HESSQF_DIR',        plugin_dir_path( __FILE__ ) );
-define( 'HESSQF_URL',        plugin_dir_url( __FILE__ ) );
-define( 'HESSQF_CACHE_KEY',  'hessqf_systems_cache_v8' );
-define( 'HESSQF_LASTGOOD_OPTION', 'hessqf_systems_last_good' );
+define( 'HESSQFE_VERSION',    '3.5.42' );
+define( 'HESSQFE_SLUG',       'hess-equip-form' );
+define( 'HESSQFE_DIR',        plugin_dir_path( __FILE__ ) );
+define( 'HESSQFE_URL',        plugin_dir_url( __FILE__ ) );
+define( 'HESSQFE_CACHE_KEY',  'hessqfe_systems_cache_v8' );
+define( 'HESSQFE_LASTGOOD_OPTION', 'hessqfe_systems_last_good' );
 
 /* ─────────────────────────────────────────────
    BOOTSTRAP — register hooks
 ────────────────────────────────────────────── */
-add_action( 'init',               'hessqf_register_quote_cpt' );
-add_action( 'admin_menu',         'hessqf_admin_menu' );
-add_action( 'admin_init',         'hessqf_register_settings' );
-add_action( 'admin_post_hessqf_flush_cache', 'hessqf_flush_cache_action' );
-add_action( 'wp_enqueue_scripts', 'hessqf_enqueue_assets' );
-add_action( 'wp_ajax_hessqf_submit',        'hessqf_handle_submission' );
-add_action( 'wp_ajax_nopriv_hessqf_submit', 'hessqf_handle_submission' );
-add_shortcode( 'hess_quote_form', 'hessqf_shortcode' );
+add_action( 'init',               'hessqfe_register_quote_cpt' );
+add_action( 'admin_menu',         'hessqfe_admin_menu' );
+add_action( 'admin_init',         'hessqfe_register_settings' );
+add_action( 'admin_post_hessqfe_flush_cache', 'hessqfe_flush_cache_action' );
+add_action( 'wp_enqueue_scripts', 'hessqfe_enqueue_assets' );
+add_action( 'wp_ajax_hessqfe_submit',        'hessqfe_handle_submission' );
+add_action( 'wp_ajax_nopriv_hessqfe_submit', 'hessqfe_handle_submission' );
+add_shortcode( 'hess_equip_form', 'hessqfe_shortcode' );
 
 // Quote CPT admin UI hooks
-add_filter( 'manage_hessqf_quote_posts_columns',       'hessqf_quote_list_columns' );
-add_action( 'manage_hessqf_quote_posts_custom_column', 'hessqf_quote_list_column_content', 10, 2 );
-add_filter( 'manage_edit-hessqf_quote_sortable_columns', 'hessqf_quote_sortable_columns' );
-add_action( 'add_meta_boxes',                          'hessqf_quote_add_meta_boxes' );
-add_action( 'save_post_hessqf_quote',                  'hessqf_quote_save_meta', 10, 2 );
-add_filter( 'post_row_actions',                        'hessqf_quote_row_actions', 10, 2 );
-add_action( 'restrict_manage_posts',                   'hessqf_quote_status_filter' );
-add_filter( 'parse_query',                             'hessqf_quote_filter_query' );
+add_filter( 'manage_hessqfe_quote_posts_columns',       'hessqfe_quote_list_columns' );
+add_action( 'manage_hessqfe_quote_posts_custom_column', 'hessqfe_quote_list_column_content', 10, 2 );
+add_filter( 'manage_edit-hessqfe_quote_sortable_columns', 'hessqfe_quote_sortable_columns' );
+add_action( 'add_meta_boxes',                          'hessqfe_quote_add_meta_boxes' );
+add_action( 'save_post_hessqfe_quote',                  'hessqfe_quote_save_meta', 10, 2 );
+add_filter( 'post_row_actions',                        'hessqfe_quote_row_actions', 10, 2 );
+add_action( 'restrict_manage_posts',                   'hessqfe_quote_status_filter' );
+add_filter( 'parse_query',                             'hessqfe_quote_filter_query' );
 
 /* ─────────────────────────────────────────────
    DEFAULTS — column visibility + settings
 ────────────────────────────────────────────── */
-function hessqf_default_table_columns() {
+function hessqfe_default_table_columns() {
 	return [
 		'brand'     => [ 'label' => 'Brand',              'visible' => 1 ],
 		'system'    => [ 'label' => 'System Type',        'visible' => 1 ],
@@ -59,7 +59,7 @@ function hessqf_default_table_columns() {
 	];
 }
 
-function hessqf_default_card_fields() {
+function hessqfe_default_card_fields() {
 	return [
 		'model_id'      => [ 'label' => 'Model ID',        'visible' => 1 ],
 		'outdoor_model' => [ 'label' => 'Outdoor Unit',    'visible' => 1 ],
@@ -77,15 +77,15 @@ function hessqf_default_card_fields() {
 /* ─────────────────────────────────────────────
    DATA LOADER — fetch + parse + cache CSV
 ────────────────────────────────────────────── */
-function hessqf_get_systems( $bypass_cache = false ) {
+function hessqfe_get_systems( $bypass_cache = false ) {
 	if ( ! $bypass_cache ) {
-		$cached = get_transient( HESSQF_CACHE_KEY );
+		$cached = get_transient( HESSQFE_CACHE_KEY );
 		if ( is_array( $cached ) && ! empty( $cached ) ) {
 			return $cached;
 		}
 	}
 
-	$url = trim( get_option( 'hessqf_sheet_url', '' ) );
+	$url = trim( get_option( 'hessqfe_sheet_url', '' ) );
 	if ( ! $url ) {
 		return [];
 	}
@@ -99,25 +99,25 @@ function hessqf_get_systems( $bypass_cache = false ) {
 	if ( ! is_wp_error( $response ) && wp_remote_retrieve_response_code( $response ) === 200 ) {
 		$csv = wp_remote_retrieve_body( $response );
 		if ( $csv ) {
-			$systems = hessqf_parse_csv( $csv );
+			$systems = hessqfe_parse_csv( $csv );
 		}
 	}
 
 	if ( ! empty( $systems ) ) {
-		$ttl_min = max( 1, (int) get_option( 'hessqf_cache_ttl', 5 ) );
-		set_transient( HESSQF_CACHE_KEY, $systems, $ttl_min * MINUTE_IN_SECONDS );
-		update_option( HESSQF_LASTGOOD_OPTION, $systems, false );
+		$ttl_min = max( 1, (int) get_option( 'hessqfe_cache_ttl', 5 ) );
+		set_transient( HESSQFE_CACHE_KEY, $systems, $ttl_min * MINUTE_IN_SECONDS );
+		update_option( HESSQFE_LASTGOOD_OPTION, $systems, false );
 		return $systems;
 	}
 
 	// Fetch failed or returned no rows (e.g. transient network blip right
 	// after a deploy) — fall back to the last successfully loaded data
 	// instead of showing "no product data" to site visitors.
-	$last_good = get_option( HESSQF_LASTGOOD_OPTION, [] );
+	$last_good = get_option( HESSQFE_LASTGOOD_OPTION, [] );
 	return is_array( $last_good ) ? $last_good : [];
 }
 
-function hessqf_parse_csv( $csv ) {
+function hessqfe_parse_csv( $csv ) {
 	$lines = preg_split( "/\r\n|\n|\r/", trim( $csv ) );
 	if ( count( $lines ) < 2 ) { return []; }
 
@@ -150,13 +150,13 @@ function hessqf_parse_csv( $csv ) {
 			continue; // BTU rows filtered out
 		}
 
-		$tier = hessqf_parse_stars( $get( $row, 'STARS' ) );
+		$tier = hessqfe_parse_stars( $get( $row, 'STARS' ) );
 		if ( $tier === null ) { continue; } // 0 (Basic) is valid
 
-		$price = hessqf_parse_currency( $get( $row, 'System Price' ) );
+		$price = hessqfe_parse_currency( $get( $row, 'System Price' ) );
 		if ( ! $price || $price < 1000 ) { continue; } // filter stub rows
 
-		$seer2 = hessqf_parse_numeric( $get( $row, 'SEER2' ) );
+		$seer2 = hessqfe_parse_numeric( $get( $row, 'SEER2' ) );
 		if ( ! $seer2 ) { continue; }
 
 		$system_raw = $get( $row, 'System' );
@@ -166,29 +166,29 @@ function hessqf_parse_csv( $csv ) {
 			'ahri'          => $ahri,
 			'year'          => (int) $get( $row, 'Year' ),
 			'brand'         => trim( $get( $row, 'Brand' ) ),
-			'system'        => hessqf_normalize_system( $system_raw ),
+			'system'        => hessqfe_normalize_system( $system_raw ),
 			'system_raw'    => $system_raw,
 			'capacity'      => $capacity,
 			'tier'          => $tier,
-			'tier_label'    => hessqf_tier_label( $tier ),
+			'tier_label'    => hessqfe_tier_label( $tier ),
 			'tier_stars'    => str_repeat( '★', $tier ),
 			'model_id'      => trim( $get( $row, 'ID' ) ),
 			'seer2'         => $seer2,
 			'stage'         => trim( $get( $row, 'Cap. Stg.' ) ),
-			'stage_label'   => hessqf_stage_label( $get( $row, 'Cap. Stg.' ) ),
+			'stage_label'   => hessqfe_stage_label( $get( $row, 'Cap. Stg.' ) ),
 			'outdoor_model' => trim( $get( $row, 'Outdoor Unit Model' ) ),
-			'outdoor_price' => hessqf_parse_currency( $get( $row, 'Outdoor Unit $' ) ),
+			'outdoor_price' => hessqfe_parse_currency( $get( $row, 'Outdoor Unit $' ) ),
 			'indoor_model'  => trim( $get( $row, 'Indoor Unit Model' ) ),
-			'indoor_price'  => hessqf_parse_currency( $get( $row, 'Indoor Unit $' ) ),
+			'indoor_price'  => hessqfe_parse_currency( $get( $row, 'Indoor Unit $' ) ),
 			'price'         => $price,
-			'monthly'       => hessqf_parse_currency( $get( $row, '*Est Mon Invest.' ) ),
-			'daily'         => hessqf_parse_currency( $get( $row, '*Daily Invest.' ) ),
+			'monthly'       => hessqfe_parse_currency( $get( $row, '*Est Mon Invest.' ) ),
+			'daily'         => hessqfe_parse_currency( $get( $row, '*Daily Invest.' ) ),
 		];
 	}
 	return $out;
 }
 
-function hessqf_parse_currency( $str ) {
+function hessqfe_parse_currency( $str ) {
 	$str = trim( (string) $str );
 	if ( $str === '' ) { return null; }
 	$clean = preg_replace( '/[^\d.\-]/', '', $str );
@@ -196,7 +196,7 @@ function hessqf_parse_currency( $str ) {
 	return floatval( $clean );
 }
 
-function hessqf_parse_numeric( $str ) {
+function hessqfe_parse_numeric( $str ) {
 	$str = trim( (string) $str );
 	if ( $str === '' ) { return null; }
 	$clean = preg_replace( '/[^\d.\-]/', '', $str );
@@ -204,7 +204,7 @@ function hessqf_parse_numeric( $str ) {
 	return floatval( $clean );
 }
 
-function hessqf_parse_stars( $str ) {
+function hessqfe_parse_stars( $str ) {
 	$s = trim( (string) $str );
 	if ( $s === '' ) { return null; }
 	// "Basic" rows from the PDFs — treated as tier 0 (no stars, just a label)
@@ -217,7 +217,7 @@ function hessqf_parse_stars( $str ) {
 	return null;
 }
 
-function hessqf_tier_label( $tier ) {
+function hessqfe_tier_label( $tier ) {
 	$labels = [
 		0 => 'Basic',
 		1 => 'Standard',
@@ -230,7 +230,7 @@ function hessqf_tier_label( $tier ) {
 	return $labels[ $tier ] ?? '';
 }
 
-function hessqf_normalize_system( $str ) {
+function hessqfe_normalize_system( $str ) {
 	$s = trim( (string) $str );
 	if ( stripos( $s, 'Heat Pump' ) !== false ) { return 'Heat Pump'; }
 	if ( stripos( $s, 'Gas' )       !== false ) { return 'Gas'; }
@@ -238,7 +238,7 @@ function hessqf_normalize_system( $str ) {
 	return $s;
 }
 
-function hessqf_stage_label( $stage_raw ) {
+function hessqfe_stage_label( $stage_raw ) {
 	$s = strtolower( trim( (string) $stage_raw ) );
 	if ( $s === '' )                                              { return ''; }
 	if ( $s === '1' )                                             { return 'Single Stg.'; }
@@ -252,51 +252,51 @@ function hessqf_stage_label( $stage_raw ) {
 /* ─────────────────────────────────────────────
    ASSETS — enqueue CSS/JS only on pages using the shortcode
 ────────────────────────────────────────────── */
-function hessqf_enqueue_assets() {
+function hessqfe_enqueue_assets() {
 	if ( is_admin() ) { return; }
 
 	wp_enqueue_style(
-		'hessqf-style',
-		HESSQF_URL . 'assets/style.css',
+		'hessqfe-style',
+		HESSQFE_URL . 'assets/style.css',
 		[],
-		HESSQF_VERSION
+		HESSQFE_VERSION
 	);
 	wp_enqueue_script(
-		'hessqf-script',
-		HESSQF_URL . 'assets/script.js',
+		'hessqfe-script',
+		HESSQFE_URL . 'assets/script.js',
 		[],
-		HESSQF_VERSION,
+		HESSQFE_VERSION,
 		true
 	);
-	wp_localize_script( 'hessqf-script', 'hessqfData', [
+	wp_localize_script( 'hessqfe-script', 'hessqfeData', [
 		'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
-		'nonce'     => wp_create_nonce( 'hessqf_submit' ),
-		'assetsUrl' => HESSQF_URL . 'assets/',
+		'nonce'     => wp_create_nonce( 'hessqfe_submit' ),
+		'assetsUrl' => HESSQFE_URL . 'assets/',
 	] );
 }
 
 /* ─────────────────────────────────────────────
    SHORTCODE — renders the form
 ────────────────────────────────────────────── */
-function hessqf_shortcode( $atts = [] ) {
-	$systems    = hessqf_get_systems();
+function hessqfe_shortcode( $atts = [] ) {
+	$systems    = hessqfe_get_systems();
 
 	// One-time migration (v3.1.2): turn on the Cap. Stg. column for installs
 	// that were running before it became visible by default.
-	if ( ! get_option( 'hessqf_capstg_migrated' ) ) {
-		$saved = get_option( 'hessqf_table_columns', null );
+	if ( ! get_option( 'hessqfe_capstg_migrated' ) ) {
+		$saved = get_option( 'hessqfe_table_columns', null );
 		if ( is_array( $saved ) && isset( $saved['stage'] ) ) {
 			$saved['stage']['visible'] = 1;
 			$saved['stage']['label']   = 'Cap. Stg.';
-			update_option( 'hessqf_table_columns', $saved );
+			update_option( 'hessqfe_table_columns', $saved );
 		}
-		update_option( 'hessqf_capstg_migrated', 1 );
+		update_option( 'hessqfe_capstg_migrated', 1 );
 	}
 
-	$table_cols = get_option( 'hessqf_table_columns', hessqf_default_table_columns() );
-	$card_flds  = get_option( 'hessqf_card_fields',   hessqf_default_card_fields() );
-	$tax_default= get_option( 'hessqf_tax_default', '' );
-	$year_mode  = get_option( 'hessqf_year_mode', 'all' ); // 'all' | 'latest'
+	$table_cols = get_option( 'hessqfe_table_columns', hessqfe_default_table_columns() );
+	$card_flds  = get_option( 'hessqfe_card_fields',   hessqfe_default_card_fields() );
+	$tax_default= get_option( 'hessqfe_tax_default', '' );
+	$year_mode  = get_option( 'hessqfe_year_mode', 'all' ); // 'all' | 'latest'
 
 	// Year filtering: 'all' = no filter, 'latest' = newest year, numeric = specific year
 	if ( $systems ) {
@@ -318,63 +318,63 @@ function hessqf_shortcode( $atts = [] ) {
 	];
 
 	ob_start();
-	include HESSQF_DIR . 'templates/form.php';
+	include HESSQFE_DIR . 'templates/form.php';
 	return ob_get_clean();
 }
 
 /* ─────────────────────────────────────────────
    ADMIN — settings page
 ────────────────────────────────────────────── */
-function hessqf_admin_menu() {
+function hessqfe_admin_menu() {
 	add_submenu_page(
-		'edit.php?post_type=hessqf_quote',
+		'edit.php?post_type=hessqfe_quote',
 		'Hess Quote Form Settings',
 		'Settings',
 		'manage_options',
-		HESSQF_SLUG,
-		'hessqf_render_settings_page'
+		HESSQFE_SLUG,
+		'hessqfe_render_settings_page'
 	);
 }
 
-function hessqf_register_settings() {
-	register_setting( 'hessqf_settings', 'hessqf_sheet_url' );
-	register_setting( 'hessqf_settings', 'hessqf_cache_ttl', [ 'type' => 'integer', 'default' => 5 ] );
-	register_setting( 'hessqf_settings', 'hessqf_year_mode' );
-	register_setting( 'hessqf_settings', 'hessqf_tax_default' );
-	register_setting( 'hessqf_settings', 'hessqf_notify_email' );
-	register_setting( 'hessqf_settings', 'hessqf_notify_cc' );
-	register_setting( 'hessqf_settings', 'hessqf_notify_bcc' );
-	register_setting( 'hessqf_settings', 'hessqf_mailgun_api_key' );
-	register_setting( 'hessqf_settings', 'hessqf_mailgun_domain' );
-	register_setting( 'hessqf_settings', 'hessqf_table_columns' );
-	register_setting( 'hessqf_settings', 'hessqf_card_fields' );
+function hessqfe_register_settings() {
+	register_setting( 'hessqfe_settings', 'hessqfe_sheet_url' );
+	register_setting( 'hessqfe_settings', 'hessqfe_cache_ttl', [ 'type' => 'integer', 'default' => 5 ] );
+	register_setting( 'hessqfe_settings', 'hessqfe_year_mode' );
+	register_setting( 'hessqfe_settings', 'hessqfe_tax_default' );
+	register_setting( 'hessqfe_settings', 'hessqfe_notify_email' );
+	register_setting( 'hessqfe_settings', 'hessqfe_notify_cc' );
+	register_setting( 'hessqfe_settings', 'hessqfe_notify_bcc' );
+	register_setting( 'hessqfe_settings', 'hessqfe_mailgun_api_key' );
+	register_setting( 'hessqfe_settings', 'hessqfe_mailgun_domain' );
+	register_setting( 'hessqfe_settings', 'hessqfe_table_columns' );
+	register_setting( 'hessqfe_settings', 'hessqfe_card_fields' );
 }
 
-function hessqf_flush_cache_action() {
+function hessqfe_flush_cache_action() {
 	if ( ! current_user_can( 'manage_options' ) ) { wp_die( 'Denied' ); }
-	check_admin_referer( 'hessqf_flush_cache' );
-	delete_transient( HESSQF_CACHE_KEY );
-	wp_safe_redirect( add_query_arg( 'cache_flushed', '1', admin_url( 'edit.php?post_type=hessqf_quote&page=' . HESSQF_SLUG ) ) );
+	check_admin_referer( 'hessqfe_flush_cache' );
+	delete_transient( HESSQFE_CACHE_KEY );
+	wp_safe_redirect( add_query_arg( 'cache_flushed', '1', admin_url( 'edit.php?post_type=hessqfe_quote&page=' . HESSQFE_SLUG ) ) );
 	exit;
 }
 
-function hessqf_render_settings_page() {
+function hessqfe_render_settings_page() {
 	if ( ! current_user_can( 'manage_options' ) ) { return; }
 
-	$sheet_url  = get_option( 'hessqf_sheet_url', '' );
-	$cache_ttl  = get_option( 'hessqf_cache_ttl', 5 );
-	$year_mode  = get_option( 'hessqf_year_mode', 'all' );
-	$tax_def    = get_option( 'hessqf_tax_default', '' );
-	$notify     = get_option( 'hessqf_notify_email', get_option( 'admin_email' ) );
-	$notify_cc  = get_option( 'hessqf_notify_cc',  '' );
-	$notify_bcc = get_option( 'hessqf_notify_bcc', '' );
-	$mg_key     = get_option( 'hessqf_mailgun_api_key', '' );
-	$mg_domain  = get_option( 'hessqf_mailgun_domain', '' );
-	$table_cols = get_option( 'hessqf_table_columns', hessqf_default_table_columns() );
-	$card_flds  = get_option( 'hessqf_card_fields',   hessqf_default_card_fields() );
+	$sheet_url  = get_option( 'hessqfe_sheet_url', '' );
+	$cache_ttl  = get_option( 'hessqfe_cache_ttl', 5 );
+	$year_mode  = get_option( 'hessqfe_year_mode', 'all' );
+	$tax_def    = get_option( 'hessqfe_tax_default', '' );
+	$notify     = get_option( 'hessqfe_notify_email', get_option( 'admin_email' ) );
+	$notify_cc  = get_option( 'hessqfe_notify_cc',  '' );
+	$notify_bcc = get_option( 'hessqfe_notify_bcc', '' );
+	$mg_key     = get_option( 'hessqfe_mailgun_api_key', '' );
+	$mg_domain  = get_option( 'hessqfe_mailgun_domain', '' );
+	$table_cols = get_option( 'hessqfe_table_columns', hessqfe_default_table_columns() );
+	$card_flds  = get_option( 'hessqfe_card_fields',   hessqfe_default_card_fields() );
 
 	// Quick data-source sanity check
-	$systems = hessqf_get_systems();
+	$systems = hessqfe_get_systems();
 	$row_count = count( $systems );
 	?>
 	<div class="wrap">
@@ -390,35 +390,35 @@ function hessqf_render_settings_page() {
 				<span style="color:#d63638">No Google Sheet URL configured.</span>
 			<?php elseif ( $row_count === 0 ) : ?>
 				<span style="color:#d63638">URL configured but 0 rows loaded. Check the CSV URL.</span>
-				<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=hessqf_flush_cache' ), 'hessqf_flush_cache' ) ); ?>" class="button button-small" style="margin-left:10px;">Flush Cache</a>
+				<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=hessqfe_flush_cache' ), 'hessqfe_flush_cache' ) ); ?>" class="button button-small" style="margin-left:10px;">Flush Cache</a>
 			<?php else : ?>
 				<span style="color:#2a7a3b"><?php echo esc_html( $row_count ); ?> systems loaded.</span>
-				<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=hessqf_flush_cache' ), 'hessqf_flush_cache' ) ); ?>" class="button button-small" style="margin-left:10px;">Flush Cache</a>
+				<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=hessqfe_flush_cache' ), 'hessqfe_flush_cache' ) ); ?>" class="button button-small" style="margin-left:10px;">Flush Cache</a>
 			<?php endif; ?>
 		</p></div>
 
 		<form method="post" action="options.php">
-			<?php settings_fields( 'hessqf_settings' ); ?>
+			<?php settings_fields( 'hessqfe_settings' ); ?>
 
 			<h2 class="title">Google Sheets Data Source</h2>
 			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><label for="hessqf_sheet_url">Published CSV URL</label></th>
+					<th scope="row"><label for="hessqfe_sheet_url">Published CSV URL</label></th>
 					<td>
-						<input type="url" id="hessqf_sheet_url" name="hessqf_sheet_url"
+						<input type="url" id="hessqfe_sheet_url" name="hessqfe_sheet_url"
 							value="<?php echo esc_attr( $sheet_url ); ?>" class="large-text" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?output=csv" />
 						<p class="description">In Google Sheets: File → Share → Publish to web → CSV format. Paste the resulting URL here.</p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="hessqf_cache_ttl">Cache TTL (minutes)</label></th>
+					<th scope="row"><label for="hessqfe_cache_ttl">Cache TTL (minutes)</label></th>
 					<td>
-						<input type="number" id="hessqf_cache_ttl" name="hessqf_cache_ttl" min="1" max="1440" value="<?php echo esc_attr( $cache_ttl ); ?>" class="small-text" />
+						<input type="number" id="hessqfe_cache_ttl" name="hessqfe_cache_ttl" min="1" max="1440" value="<?php echo esc_attr( $cache_ttl ); ?>" class="small-text" />
 						<p class="description">How long to cache the sheet data before re-fetching. 5–15 min is typical. Use the "Flush Cache" link above to force an immediate refresh.</p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="hessqf_year_mode">Year display</label></th>
+					<th scope="row"><label for="hessqfe_year_mode">Year display</label></th>
 					<td>
 						<?php
 						// Build year list from loaded sheet (descending). "Latest" is always
@@ -430,7 +430,7 @@ function hessqf_render_settings_page() {
 							rsort( $available_years, SORT_NUMERIC );
 						}
 						?>
-						<select id="hessqf_year_mode" name="hessqf_year_mode">
+						<select id="hessqfe_year_mode" name="hessqfe_year_mode">
 							<option value="all"    <?php selected( $year_mode, 'all' ); ?>>Show all years</option>
 							<option value="latest" <?php selected( $year_mode, 'latest' ); ?>>Show only latest year (auto-updates)</option>
 							<?php if ( $available_years ) : ?>
@@ -459,7 +459,7 @@ function hessqf_render_settings_page() {
 						<th style="width:110px;">Show</th>
 					</tr>
 				</thead>
-				<?php foreach ( hessqf_default_table_columns() as $key => $def ) :
+				<?php foreach ( hessqfe_default_table_columns() as $key => $def ) :
 					$current = $table_cols[ $key ] ?? $def;
 					$label   = isset( $current['label'] ) && $current['label'] !== '' ? $current['label'] : $def['label'];
 				?>
@@ -467,13 +467,13 @@ function hessqf_render_settings_page() {
 						<th scope="row"><?php echo esc_html( $def['label'] ); ?></th>
 						<td>
 							<input type="text" class="regular-text"
-								name="hessqf_table_columns[<?php echo esc_attr( $key ); ?>][label]"
+								name="hessqfe_table_columns[<?php echo esc_attr( $key ); ?>][label]"
 								value="<?php echo esc_attr( $label ); ?>"
 								placeholder="<?php echo esc_attr( $def['label'] ); ?>" />
 						</td>
 						<td>
 							<label>
-								<input type="checkbox" name="hessqf_table_columns[<?php echo esc_attr( $key ); ?>][visible]" value="1" <?php checked( ! empty( $current['visible'] ) ); ?> />
+								<input type="checkbox" name="hessqfe_table_columns[<?php echo esc_attr( $key ); ?>][visible]" value="1" <?php checked( ! empty( $current['visible'] ) ); ?> />
 								Visible
 							</label>
 						</td>
@@ -491,7 +491,7 @@ function hessqf_render_settings_page() {
 						<th style="width:110px;">Show</th>
 					</tr>
 				</thead>
-				<?php foreach ( hessqf_default_card_fields() as $key => $def ) :
+				<?php foreach ( hessqfe_default_card_fields() as $key => $def ) :
 					$current = $card_flds[ $key ] ?? $def;
 					$label   = isset( $current['label'] ) && $current['label'] !== '' ? $current['label'] : $def['label'];
 				?>
@@ -499,13 +499,13 @@ function hessqf_render_settings_page() {
 						<th scope="row"><?php echo esc_html( $def['label'] ); ?></th>
 						<td>
 							<input type="text" class="regular-text"
-								name="hessqf_card_fields[<?php echo esc_attr( $key ); ?>][label]"
+								name="hessqfe_card_fields[<?php echo esc_attr( $key ); ?>][label]"
 								value="<?php echo esc_attr( $label ); ?>"
 								placeholder="<?php echo esc_attr( $def['label'] ); ?>" />
 						</td>
 						<td>
 							<label>
-								<input type="checkbox" name="hessqf_card_fields[<?php echo esc_attr( $key ); ?>][visible]" value="1" <?php checked( ! empty( $current['visible'] ) ); ?> />
+								<input type="checkbox" name="hessqfe_card_fields[<?php echo esc_attr( $key ); ?>][visible]" value="1" <?php checked( ! empty( $current['visible'] ) ); ?> />
 								Visible
 							</label>
 						</td>
@@ -516,29 +516,29 @@ function hessqf_render_settings_page() {
 			<h2 class="title">Form Defaults</h2>
 			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><label for="hessqf_tax_default">Default Tax Rate (%)</label></th>
+					<th scope="row"><label for="hessqfe_tax_default">Default Tax Rate (%)</label></th>
 					<td>
-						<input type="number" step="0.01" id="hessqf_tax_default" name="hessqf_tax_default" value="<?php echo esc_attr( $tax_def ); ?>" class="small-text" />
+						<input type="number" step="0.01" id="hessqfe_tax_default" name="hessqfe_tax_default" value="<?php echo esc_attr( $tax_def ); ?>" class="small-text" />
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="hessqf_notify_email">Notification Email (To)</label></th>
+					<th scope="row"><label for="hessqfe_notify_email">Notification Email (To)</label></th>
 					<td>
-						<input type="email" id="hessqf_notify_email" name="hessqf_notify_email" value="<?php echo esc_attr( $notify ); ?>" class="regular-text" />
+						<input type="email" id="hessqfe_notify_email" name="hessqfe_notify_email" value="<?php echo esc_attr( $notify ); ?>" class="regular-text" />
 						<p class="description">Primary recipient for new quote notifications. Defaults to the site admin email.</p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="hessqf_notify_cc">CC Recipients</label></th>
+					<th scope="row"><label for="hessqfe_notify_cc">CC Recipients</label></th>
 					<td>
-						<input type="text" id="hessqf_notify_cc" name="hessqf_notify_cc" value="<?php echo esc_attr( $notify_cc ); ?>" class="regular-text" placeholder="manager@example.com, sales@example.com" />
+						<input type="text" id="hessqfe_notify_cc" name="hessqfe_notify_cc" value="<?php echo esc_attr( $notify_cc ); ?>" class="regular-text" placeholder="manager@example.com, sales@example.com" />
 						<p class="description">Optional. Comma-separated list of emails to CC on each quote notification. Visible to all recipients.</p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="hessqf_notify_bcc">BCC Recipients</label></th>
+					<th scope="row"><label for="hessqfe_notify_bcc">BCC Recipients</label></th>
 					<td>
-						<input type="text" id="hessqf_notify_bcc" name="hessqf_notify_bcc" value="<?php echo esc_attr( $notify_bcc ); ?>" class="regular-text" placeholder="archive@example.com" />
+						<input type="text" id="hessqfe_notify_bcc" name="hessqfe_notify_bcc" value="<?php echo esc_attr( $notify_bcc ); ?>" class="regular-text" placeholder="archive@example.com" />
 						<p class="description">Optional. Comma-separated list of emails to BCC on each quote notification. Hidden from other recipients.</p>
 					</td>
 				</tr>
@@ -547,17 +547,17 @@ function hessqf_render_settings_page() {
 			<h2 class="title">Mailgun (Email Delivery)</h2>
 			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><label for="hessqf_mailgun_api_key">Mailgun API Key</label></th>
+					<th scope="row"><label for="hessqfe_mailgun_api_key">Mailgun API Key</label></th>
 					<td>
-						<input type="password" id="hessqf_mailgun_api_key" name="hessqf_mailgun_api_key"
+						<input type="password" id="hessqfe_mailgun_api_key" name="hessqfe_mailgun_api_key"
 							value="<?php echo esc_attr( $mg_key ); ?>" class="regular-text" autocomplete="off" />
 						<p class="description">Use a <strong>Domain Sending Key</strong> (not your private API key) — Mailgun Dashboard → Your Domain → Domain Settings → Sending API Keys.</p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="hessqf_mailgun_domain">Mailgun Sending Domain</label></th>
+					<th scope="row"><label for="hessqfe_mailgun_domain">Mailgun Sending Domain</label></th>
 					<td>
-						<input type="text" id="hessqf_mailgun_domain" name="hessqf_mailgun_domain"
+						<input type="text" id="hessqfe_mailgun_domain" name="hessqfe_mailgun_domain"
 							value="<?php echo esc_attr( $mg_domain ); ?>" class="regular-text" placeholder="mg.yoursite.com" />
 						<p class="description">The verified sending domain from Mailgun. Leave empty to fall back to <code>wp_mail()</code>.</p>
 					</td>
@@ -568,7 +568,7 @@ function hessqf_render_settings_page() {
 		</form>
 
 		<h2>Usage</h2>
-		<p>Add the shortcode <code>[hess_quote_form]</code> to any page to display the form.</p>
+		<p>Add the shortcode <code>[hess_equip_form]</code> to any page to display the form.</p>
 	</div>
 	<?php
 }
@@ -576,8 +576,8 @@ function hessqf_render_settings_page() {
 /* ─────────────────────────────────────────────
    AJAX SUBMISSION
 ────────────────────────────────────────────── */
-function hessqf_handle_submission() {
-	check_ajax_referer( 'hessqf_submit', 'nonce' );
+function hessqfe_handle_submission() {
+	check_ajax_referer( 'hessqfe_submit', 'nonce' );
 
 	$quote_num = sanitize_text_field( $_POST['quoteNumber'] ?? '' );
 	$associate             = sanitize_text_field( $_POST['associate']          ?? '' );
@@ -637,8 +637,8 @@ function hessqf_handle_submission() {
 		wp_send_json_error( [ 'message' => 'Missing required fields.' ] );
 	}
 
-	// Persist the quote as a hessqf_quote CPT so it's reviewable in the admin
-	$quote_post_id = hessqf_store_quote( [
+	// Persist the quote as a hessqfe_quote CPT so it's reviewable in the admin
+	$quote_post_id = hessqfe_store_quote( [
 		'quoteNumber'         => $quote_num,
 		'associate'           => $associate,
 		'existingBrand'       => $existing_brand,
@@ -656,13 +656,13 @@ function hessqf_handle_submission() {
 		'pricing'             => $pricing,
 	] );
 
-	$notify_to  = get_option( 'hessqf_notify_email', get_option( 'admin_email' ) );
-	$notify_cc  = hessqf_parse_email_list( get_option( 'hessqf_notify_cc',  '' ) );
-	$notify_bcc = hessqf_parse_email_list( get_option( 'hessqf_notify_bcc', '' ) );
+	$notify_to  = get_option( 'hessqfe_notify_email', get_option( 'admin_email' ) );
+	$notify_cc  = hessqfe_parse_email_list( get_option( 'hessqfe_notify_cc',  '' ) );
+	$notify_bcc = hessqfe_parse_email_list( get_option( 'hessqfe_notify_bcc', '' ) );
 
 	$existing   = [ 'brand' => $existing_brand, 'model' => $existing_model, 'serial' => $existing_serial, 'atticCloset' => $existing_attic_closet ];
-	$admin_html = hessqf_build_admin_email_html( $quote_num, $associate, $name, $phone, $email, $address, $schedule, $comments, $unit, $pricing, $quote_post_id, $signature, $existing );
-	$cust_html  = hessqf_build_customer_email_html( $quote_num, $name, $unit, $pricing );
+	$admin_html = hessqfe_build_admin_email_html( $quote_num, $associate, $name, $phone, $email, $address, $schedule, $comments, $unit, $pricing, $quote_post_id, $signature, $existing );
+	$cust_html  = hessqfe_build_customer_email_html( $quote_num, $name, $unit, $pricing );
 
 	// When the customer has both picked a schedule AND signed the quote, treat
 	// it as an accepted sale and adjust the subject lines accordingly.
@@ -675,7 +675,7 @@ function hessqf_handle_submission() {
 		: "Quote Confirmed — {$quote_num}";
 
 	$errors = [];
-	$admin_result = hessqf_send_email(
+	$admin_result = hessqfe_send_email(
 		$notify_to,
 		$admin_subject,
 		$admin_html,
@@ -685,7 +685,7 @@ function hessqf_handle_submission() {
 	if ( ! $admin_result['sent'] ) { $errors[] = 'admin: ' . $admin_result['error']; }
 
 	$customer_sent = false;
-	$cust_result = hessqf_send_email( $email, $cust_subject, $cust_html, $notify_to );
+	$cust_result = hessqfe_send_email( $email, $cust_subject, $cust_html, $notify_to );
 	if ( $cust_result['sent'] ) {
 		$customer_sent = true;
 	} else {
@@ -706,7 +706,7 @@ function hessqf_handle_submission() {
  * Parse a comma/semicolon-separated list of emails into a clean array of
  * valid addresses. Invalid entries are silently dropped.
  */
-function hessqf_parse_email_list( $raw ) {
+function hessqfe_parse_email_list( $raw ) {
 	if ( ! $raw ) { return []; }
 	$parts = preg_split( '/[,;\s]+/', (string) $raw );
 	$out   = [];
@@ -727,9 +727,9 @@ function hessqf_parse_email_list( $raw ) {
  * @param string $reply_to  Optional Reply-To address.
  * @param array  $options   [ 'cc' => array, 'bcc' => array ]
  */
-function hessqf_send_email( $to, $subject, $html_body, $reply_to = '', $options = [] ) {
-	$api_key   = get_option( 'hessqf_mailgun_api_key', '' );
-	$mg_domain = get_option( 'hessqf_mailgun_domain', '' );
+function hessqfe_send_email( $to, $subject, $html_body, $reply_to = '', $options = [] ) {
+	$api_key   = get_option( 'hessqfe_mailgun_api_key', '' );
+	$mg_domain = get_option( 'hessqfe_mailgun_domain', '' );
 	$blog_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 
 	$cc  = isset( $options['cc'] )  && is_array( $options['cc'] )  ? $options['cc']  : [];
@@ -781,7 +781,7 @@ function hessqf_send_email( $to, $subject, $html_body, $reply_to = '', $options 
 
 /* ── Branded email template helpers ── */
 
-function hessqf_email_header() {
+function hessqfe_email_header() {
 	return '<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="font-family:Arial,Helvetica,sans-serif;color:#222;margin:0;padding:20px 0;background:#f4f5f7;">
@@ -797,7 +797,7 @@ function hessqf_email_header() {
   <tr><td style="background:#fff;padding:28px 28px 8px;">';
 }
 
-function hessqf_email_footer() {
+function hessqfe_email_footer() {
 	return '  </td></tr>
   <tr><td style="background:#1a3a5c;padding:16px 28px;border-radius:0 0 6px 6px;text-align:center;">
     <p style="color:rgba(255,255,255,0.5);font-size:0.75rem;margin:0;">
@@ -808,19 +808,19 @@ function hessqf_email_footer() {
 </body></html>';
 }
 
-function hessqf_email_quote_badge( $qn ) {
+function hessqfe_email_quote_badge( $qn ) {
 	return '<div style="background:#f4f5f7;border-left:4px solid #f79cbe;border-radius:4px;padding:12px 16px;margin:16px 0;">
   <div style="font-size:0.7rem;color:#888;text-transform:uppercase;letter-spacing:0.6px;font-weight:600;">Quote Number</div>
   <div style="font-size:1.2rem;font-weight:700;color:#c0457a;letter-spacing:1.5px;margin-top:3px;">' . esc_html( $qn ) . '</div>
 </div>';
 }
 
-function hessqf_email_section_h( $title ) {
+function hessqfe_email_section_h( $title ) {
 	return '<h3 style="color:#1a3a5c;font-size:0.95rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin:22px 0 10px;padding-bottom:6px;border-bottom:2px solid #f79cbe;">'
 		. esc_html( $title ) . '</h3>';
 }
 
-function hessqf_email_data_table( array $rows ) {
+function hessqfe_email_data_table( array $rows ) {
 	$html = '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid #dde1e7;font-size:0.875rem;">';
 	$i = 0;
 	foreach ( $rows as $row ) {
@@ -842,7 +842,7 @@ function hessqf_email_data_table( array $rows ) {
  * section, mirroring the Step 2 summary page layout (breakdowns/notes
  * appended in parentheses).
  */
-function hessqf_pricing_rows( $pricing ) {
+function hessqfe_pricing_rows( $pricing ) {
 	$with_notes = function( $value, $notes ) {
 		if ( $value === '' ) { return ''; }
 		return $notes !== '' ? "{$value} ({$notes})" : $value;
@@ -862,7 +862,7 @@ function hessqf_pricing_rows( $pricing ) {
 
 /* ── Email body builders ── */
 
-function hessqf_build_admin_email_html( $quote_num, $associate, $name, $phone, $email, $address, $schedule, $comments, $unit, $pricing, $quote_post_id = 0, $signature = '', $existing = [] ) {
+function hessqfe_build_admin_email_html( $quote_num, $associate, $name, $phone, $email, $address, $schedule, $comments, $unit, $pricing, $quote_post_id = 0, $signature = '', $existing = [] ) {
 	$contact_rows = [
 		[ 'Hess Associate', $associate ],
 		[ 'Name',    $name ],
@@ -899,25 +899,25 @@ function hessqf_build_admin_email_html( $quote_num, $associate, $name, $phone, $
 	$product_rows[] = [ 'Outdoor Unit',     $unit['outdoor'] ];
 	$product_rows[] = [ 'Indoor Unit',      $unit['indoor'] ];
 
-	$html  = hessqf_email_header();
+	$html  = hessqfe_email_header();
 	$html .= '<p style="margin:0 0 4px;"><strong>New quote request received.</strong></p>';
 	$html .= '<p style="color:#666;margin:0 0 8px;font-size:0.88rem;">A customer has submitted a quote via the employee quote form.</p>';
-	$html .= hessqf_email_quote_badge( $quote_num );
+	$html .= hessqfe_email_quote_badge( $quote_num );
 
 	if ( $quote_post_id ) {
 		$edit_url = admin_url( 'post.php?post=' . (int) $quote_post_id . '&action=edit' );
 		$html .= '<p style="margin:0 0 16px;"><a href="' . esc_url( $edit_url ) . '" style="color:#c0457a;font-weight:700;text-decoration:none;">&rarr; Review in WordPress admin</a></p>';
 	}
 
-	$html .= hessqf_email_section_h( 'Customer Contact' );
-	$html .= hessqf_email_data_table( $contact_rows );
-	$html .= hessqf_email_section_h( 'Quoted System' );
-	$html .= hessqf_email_data_table( $product_rows );
-	$html .= hessqf_email_section_h( 'Pricing & Investment' );
-	$html .= hessqf_email_data_table( hessqf_pricing_rows( $pricing ) );
+	$html .= hessqfe_email_section_h( 'Customer Contact' );
+	$html .= hessqfe_email_data_table( $contact_rows );
+	$html .= hessqfe_email_section_h( 'Quoted System' );
+	$html .= hessqfe_email_data_table( $product_rows );
+	$html .= hessqfe_email_section_h( 'Pricing & Investment' );
+	$html .= hessqfe_email_data_table( hessqfe_pricing_rows( $pricing ) );
 
 	if ( $signature ) {
-		$html .= hessqf_email_section_h( 'Customer Signature' );
+		$html .= hessqfe_email_section_h( 'Customer Signature' );
 		$html .= '<div style="border:1px solid #d8dde6;border-radius:4px;padding:8px;background:#fff;display:inline-block;">';
 		$html .= '<img src="' . esc_attr( $signature ) . '" alt="Customer signature" style="max-width:100%;height:auto;display:block;" />';
 		$html .= '</div>';
@@ -925,11 +925,11 @@ function hessqf_build_admin_email_html( $quote_num, $associate, $name, $phone, $
 	}
 
 	$html .= '<p style="margin:20px 0 8px;color:#666;font-size:0.82rem;">Automated notification — Hess Air Quote Form plugin.</p>';
-	$html .= hessqf_email_footer();
+	$html .= hessqfe_email_footer();
 	return $html;
 }
 
-function hessqf_build_customer_email_html( $quote_num, $name, $unit, $pricing ) {
+function hessqfe_build_customer_email_html( $quote_num, $name, $unit, $pricing ) {
 	$capacity_display = $unit['capacity'] !== '' ? ( preg_match( '/ton/i', (string) $unit['capacity'] ) ? $unit['capacity'] : $unit['capacity'] . ' Ton' ) : '';
 
 	$product_rows = [
@@ -949,17 +949,17 @@ function hessqf_build_customer_email_html( $quote_num, $name, $unit, $pricing ) 
 	$product_rows[] = [ 'Outdoor Unit',     $unit['outdoor'] ];
 	$product_rows[] = [ 'Indoor Unit',      $unit['indoor'] ];
 
-	$html  = hessqf_email_header();
+	$html  = hessqfe_email_header();
 	$html .= '<p style="margin:0 0 12px;">Hi <strong>' . esc_html( $name ) . '</strong>,</p>';
 	$html .= '<p style="color:#444;margin:0 0 8px;">Thank you for your HVAC quote request. Below is a summary of your quote — please keep this for your records.</p>';
-	$html .= hessqf_email_quote_badge( $quote_num );
-	$html .= hessqf_email_section_h( 'Selected System' );
-	$html .= hessqf_email_data_table( $product_rows );
-	$html .= hessqf_email_section_h( 'Pricing & Investment' );
-	$html .= hessqf_email_data_table( hessqf_pricing_rows( $pricing ) );
+	$html .= hessqfe_email_quote_badge( $quote_num );
+	$html .= hessqfe_email_section_h( 'Selected System' );
+	$html .= hessqfe_email_data_table( $product_rows );
+	$html .= hessqfe_email_section_h( 'Pricing & Investment' );
+	$html .= hessqfe_email_data_table( hessqfe_pricing_rows( $pricing ) );
 	$html .= '<p style="margin:24px 0 8px;color:#444;">A Hess Air team member will be in touch with you soon. Call us at <strong>956-702-HESS (4377)</strong> or reply to this email with any questions.</p>';
 	$html .= '<p style="margin:0 0 20px;">Thank you for choosing Hess Air!</p>';
-	$html .= hessqf_email_footer();
+	$html .= hessqfe_email_footer();
 	return $html;
 }
 
@@ -970,7 +970,7 @@ function hessqf_build_customer_email_html( $quote_num, $name, $unit, $pricing ) 
 /**
  * Lifecycle status options for a stored quote.
  */
-function hessqf_quote_statuses() {
+function hessqfe_quote_statuses() {
 	return [
 		'new'       => 'New',
 		'contacted' => 'Contacted',
@@ -982,24 +982,24 @@ function hessqf_quote_statuses() {
 }
 
 /**
- * Register the `hessqf_quote` custom post type. Not publicly queryable — it's
+ * Register the `hessqfe_quote` custom post type. Not publicly queryable — it's
  * an internal record only visible in the WordPress admin.
  */
-function hessqf_register_quote_cpt() {
-	register_post_type( 'hessqf_quote', [
+function hessqfe_register_quote_cpt() {
+	register_post_type( 'hessqfe_quote', [
 		'labels' => [
-			'name'               => 'Hesserized Quotes',
-			'singular_name'      => 'Hesserized Quote',
-			'menu_name'          => 'Hesserized Quotes',
-			'add_new'            => 'Add Hesserized Quote',
-			'add_new_item'       => 'Add New Hesserized Quote',
-			'edit_item'          => 'Edit Hesserized Quote',
-			'new_item'           => 'New Hesserized Quote',
-			'view_item'          => 'View Hesserized Quote',
-			'search_items'       => 'Search Hesserized Quotes',
-			'not_found'          => 'No hesserized quotes found.',
-			'not_found_in_trash' => 'No hesserized quotes in trash.',
-			'all_items'          => 'All Hesserized Quotes',
+			'name'               => 'Equipment Quotes',
+			'singular_name'      => 'Equipment Quote',
+			'menu_name'          => 'Equipment Quotes',
+			'add_new'            => 'Add Equipment Quote',
+			'add_new_item'       => 'Add New Equipment Quote',
+			'edit_item'          => 'Edit Equipment Quote',
+			'new_item'           => 'New Equipment Quote',
+			'view_item'          => 'View Equipment Quote',
+			'search_items'       => 'Search Equipment Quotes',
+			'not_found'          => 'No equipment quotes found.',
+			'not_found_in_trash' => 'No equipment quotes in trash.',
+			'all_items'          => 'All Equipment Quotes',
 		],
 		'public'              => false,
 		'show_ui'             => true,
@@ -1024,7 +1024,7 @@ function hessqf_register_quote_cpt() {
  * Create a quote post from a submission payload. Returns the new post ID, or 0
  * on failure (errors are logged but never block the email flow).
  */
-function hessqf_store_quote( $payload ) {
+function hessqfe_store_quote( $payload ) {
 	$unit    = is_array( $payload['unit'] ?? null )    ? $payload['unit']    : [];
 	$pricing = is_array( $payload['pricing'] ?? null ) ? $payload['pricing'] : [];
 
@@ -1036,7 +1036,7 @@ function hessqf_store_quote( $payload ) {
 	);
 
 	$post_id = wp_insert_post( [
-		'post_type'   => 'hessqf_quote',
+		'post_type'   => 'hessqfe_quote',
 		'post_status' => 'publish',
 		'post_title'  => wp_strip_all_tags( $title ),
 	], true );
@@ -1047,50 +1047,50 @@ function hessqf_store_quote( $payload ) {
 	}
 
 	$meta = [
-		'_hessqf_quote_number'          => $payload['quoteNumber']   ?? '',
-		'_hessqf_associate'             => $payload['associate']    ?? '',
-		'_hessqf_existing_brand'        => $payload['existingBrand']       ?? '',
-		'_hessqf_existing_model'        => $payload['existingModel']       ?? '',
-		'_hessqf_existing_serial'       => $payload['existingSerial']      ?? '',
-		'_hessqf_existing_attic_closet' => $payload['existingAtticCloset'] ?? '',
-		'_hessqf_name'                  => $payload['name']        ?? '',
-		'_hessqf_phone'        => $payload['phone']       ?? '',
-		'_hessqf_email'        => $payload['email']       ?? '',
-		'_hessqf_address'      => $payload['address']     ?? '',
-		'_hessqf_schedule'     => $payload['schedule']    ?? '',
-		'_hessqf_comments'     => $payload['comments']    ?? '',
-		'_hessqf_status'       => 'new',
-		'_hessqf_submitted_at' => current_time( 'mysql' ),
-		'_hessqf_ip'           => hessqf_get_client_ip(),
-		'_hessqf_signature'    => $payload['signature']   ?? '',
+		'_hessqfe_quote_number'          => $payload['quoteNumber']   ?? '',
+		'_hessqfe_associate'             => $payload['associate']    ?? '',
+		'_hessqfe_existing_brand'        => $payload['existingBrand']       ?? '',
+		'_hessqfe_existing_model'        => $payload['existingModel']       ?? '',
+		'_hessqfe_existing_serial'       => $payload['existingSerial']      ?? '',
+		'_hessqfe_existing_attic_closet' => $payload['existingAtticCloset'] ?? '',
+		'_hessqfe_name'                  => $payload['name']        ?? '',
+		'_hessqfe_phone'        => $payload['phone']       ?? '',
+		'_hessqfe_email'        => $payload['email']       ?? '',
+		'_hessqfe_address'      => $payload['address']     ?? '',
+		'_hessqfe_schedule'     => $payload['schedule']    ?? '',
+		'_hessqfe_comments'     => $payload['comments']    ?? '',
+		'_hessqfe_status'       => 'new',
+		'_hessqfe_submitted_at' => current_time( 'mysql' ),
+		'_hessqfe_ip'           => hessqfe_get_client_ip(),
+		'_hessqfe_signature'    => $payload['signature']   ?? '',
 		// Unit fields
-		'_hessqf_unit_ahri'        => $unit['ahri']        ?? '',
-		'_hessqf_unit_model_id'    => $unit['model_id']    ?? '',
-		'_hessqf_unit_brand'       => $unit['brand']       ?? '',
-		'_hessqf_unit_system'      => $unit['system']      ?? '',
-		'_hessqf_unit_capacity'    => $unit['capacity']    ?? '',
-		'_hessqf_unit_tier'        => $unit['tier']        ?? '',
-		'_hessqf_unit_seer2'       => $unit['seer2']       ?? '',
-		'_hessqf_unit_stage'       => $unit['stage']       ?? '',
-		'_hessqf_unit_price'       => $unit['price']       ?? '',
-		'_hessqf_unit_price_taxed' => $unit['price_taxed'] ?? '',
-		'_hessqf_unit_monthly'     => $unit['monthly']     ?? '',
-		'_hessqf_unit_daily'       => $unit['daily']       ?? '',
-		'_hessqf_unit_outdoor'     => $unit['outdoor']     ?? '',
-		'_hessqf_unit_indoor'      => $unit['indoor']      ?? '',
+		'_hessqfe_unit_ahri'        => $unit['ahri']        ?? '',
+		'_hessqfe_unit_model_id'    => $unit['model_id']    ?? '',
+		'_hessqfe_unit_brand'       => $unit['brand']       ?? '',
+		'_hessqfe_unit_system'      => $unit['system']      ?? '',
+		'_hessqfe_unit_capacity'    => $unit['capacity']    ?? '',
+		'_hessqfe_unit_tier'        => $unit['tier']        ?? '',
+		'_hessqfe_unit_seer2'       => $unit['seer2']       ?? '',
+		'_hessqfe_unit_stage'       => $unit['stage']       ?? '',
+		'_hessqfe_unit_price'       => $unit['price']       ?? '',
+		'_hessqfe_unit_price_taxed' => $unit['price_taxed'] ?? '',
+		'_hessqfe_unit_monthly'     => $unit['monthly']     ?? '',
+		'_hessqfe_unit_daily'       => $unit['daily']       ?? '',
+		'_hessqfe_unit_outdoor'     => $unit['outdoor']     ?? '',
+		'_hessqfe_unit_indoor'      => $unit['indoor']      ?? '',
 		// Pricing fields
-		'_hessqf_pricing_value_package'          => $pricing['valuePackage']          ?? '',
-		'_hessqf_pricing_options'                => $pricing['options']               ?? '',
-		'_hessqf_pricing_options_breakdown'      => $pricing['optionsBreakdown']      ?? '',
-		'_hessqf_pricing_installation'           => $pricing['installation']          ?? '',
-		'_hessqf_pricing_installation_breakdown' => $pricing['installationBreakdown'] ?? '',
-		'_hessqf_pricing_down_payment'           => $pricing['downPayment']           ?? '',
-		'_hessqf_pricing_down_notes'             => $pricing['downNotes']             ?? '',
-		'_hessqf_pricing_trade_in'                => $pricing['tradeIn']              ?? '',
-		'_hessqf_pricing_trade_in_notes'          => $pricing['tradeInNotes']         ?? '',
-		'_hessqf_pricing_total_investment'       => $pricing['totalInvestment']       ?? '',
-		'_hessqf_pricing_amount_financed'        => $pricing['amountFinanced']        ?? '',
-		'_hessqf_pricing_financing_0pct'         => $pricing['financing0pct']         ?? '',
+		'_hessqfe_pricing_value_package'          => $pricing['valuePackage']          ?? '',
+		'_hessqfe_pricing_options'                => $pricing['options']               ?? '',
+		'_hessqfe_pricing_options_breakdown'      => $pricing['optionsBreakdown']      ?? '',
+		'_hessqfe_pricing_installation'           => $pricing['installation']          ?? '',
+		'_hessqfe_pricing_installation_breakdown' => $pricing['installationBreakdown'] ?? '',
+		'_hessqfe_pricing_down_payment'           => $pricing['downPayment']           ?? '',
+		'_hessqfe_pricing_down_notes'             => $pricing['downNotes']             ?? '',
+		'_hessqfe_pricing_trade_in'                => $pricing['tradeIn']              ?? '',
+		'_hessqfe_pricing_trade_in_notes'          => $pricing['tradeInNotes']         ?? '',
+		'_hessqfe_pricing_total_investment'       => $pricing['totalInvestment']       ?? '',
+		'_hessqfe_pricing_amount_financed'        => $pricing['amountFinanced']        ?? '',
+		'_hessqfe_pricing_financing_0pct'         => $pricing['financing0pct']         ?? '',
 	];
 	foreach ( $meta as $k => $v ) {
 		update_post_meta( $post_id, $k, $v );
@@ -1099,7 +1099,7 @@ function hessqf_store_quote( $payload ) {
 	return (int) $post_id;
 }
 
-function hessqf_get_client_ip() {
+function hessqfe_get_client_ip() {
 	$keys = [ 'HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'REMOTE_ADDR' ];
 	foreach ( $keys as $k ) {
 		if ( ! empty( $_SERVER[ $k ] ) ) {
@@ -1114,7 +1114,7 @@ function hessqf_get_client_ip() {
 
 /* ── Admin list table customization ───────────────────────── */
 
-function hessqf_quote_list_columns( $cols ) {
+function hessqfe_quote_list_columns( $cols ) {
 	// Drop the default Date column so we can re-add it after our own, for a
 	// cleaner left-to-right reading order.
 	$date = $cols['date'] ?? '';
@@ -1133,29 +1133,29 @@ function hessqf_quote_list_columns( $cols ) {
 	return $new;
 }
 
-function hessqf_quote_list_column_content( $column, $post_id ) {
+function hessqfe_quote_list_column_content( $column, $post_id ) {
 	switch ( $column ) {
 		case 'qnumber':
-			$q = get_post_meta( $post_id, '_hessqf_quote_number', true );
+			$q = get_post_meta( $post_id, '_hessqfe_quote_number', true );
 			$edit = get_edit_post_link( $post_id );
 			echo '<strong><a href="' . esc_url( $edit ) . '">' . esc_html( $q ?: '—' ) . '</a></strong>';
 			break;
 		case 'customer':
-			$name = get_post_meta( $post_id, '_hessqf_name', true );
+			$name = get_post_meta( $post_id, '_hessqfe_name', true );
 			echo esc_html( $name ?: '—' );
 			break;
 		case 'contact':
-			$email = get_post_meta( $post_id, '_hessqf_email', true );
-			$phone = get_post_meta( $post_id, '_hessqf_phone', true );
+			$email = get_post_meta( $post_id, '_hessqfe_email', true );
+			$phone = get_post_meta( $post_id, '_hessqfe_phone', true );
 			if ( $email ) echo '<a href="mailto:' . esc_attr( $email ) . '">' . esc_html( $email ) . '</a><br/>';
 			if ( $phone ) echo '<a href="tel:' . esc_attr( preg_replace( '/[^\d+]/', '', $phone ) ) . '">' . esc_html( $phone ) . '</a>';
 			break;
 		case 'unit':
-			$brand  = get_post_meta( $post_id, '_hessqf_unit_brand',    true );
-			$sys    = get_post_meta( $post_id, '_hessqf_unit_system',   true );
-			$cap    = get_post_meta( $post_id, '_hessqf_unit_capacity', true );
-			$tier   = get_post_meta( $post_id, '_hessqf_unit_tier',     true );
-			$model  = get_post_meta( $post_id, '_hessqf_unit_model_id', true );
+			$brand  = get_post_meta( $post_id, '_hessqfe_unit_brand',    true );
+			$sys    = get_post_meta( $post_id, '_hessqfe_unit_system',   true );
+			$cap    = get_post_meta( $post_id, '_hessqfe_unit_capacity', true );
+			$tier   = get_post_meta( $post_id, '_hessqfe_unit_tier',     true );
+			$model  = get_post_meta( $post_id, '_hessqfe_unit_model_id', true );
 			$line1 = trim( $brand . ( $sys ? ' — ' . $sys : '' ) );
 			$line2 = trim( ( $cap ? $cap . ' ' : '' ) . ( $tier ? '· ' . $tier : '' ) );
 			echo esc_html( $line1 ?: '—' );
@@ -1163,17 +1163,17 @@ function hessqf_quote_list_column_content( $column, $post_id ) {
 			if ( $model )  echo '<br/><code style="font-size:0.8em;">' . esc_html( $model ) . '</code>';
 			break;
 		case 'price':
-			$price = get_post_meta( $post_id, '_hessqf_unit_price',       true );
-			$taxed = get_post_meta( $post_id, '_hessqf_unit_price_taxed', true );
+			$price = get_post_meta( $post_id, '_hessqfe_unit_price',       true );
+			$taxed = get_post_meta( $post_id, '_hessqfe_unit_price_taxed', true );
 			echo esc_html( $price ?: '—' );
 			if ( $taxed ) echo '<br/><span style="color:#666;font-size:0.85em;">tax: ' . esc_html( $taxed ) . '</span>';
 			break;
 		case 'schedule':
-			echo esc_html( get_post_meta( $post_id, '_hessqf_schedule', true ) ?: '—' );
+			echo esc_html( get_post_meta( $post_id, '_hessqfe_schedule', true ) ?: '—' );
 			break;
 		case 'status':
-			$status = get_post_meta( $post_id, '_hessqf_status', true ) ?: 'new';
-			$labels = hessqf_quote_statuses();
+			$status = get_post_meta( $post_id, '_hessqfe_status', true ) ?: 'new';
+			$labels = hessqfe_quote_statuses();
 			$label  = $labels[ $status ] ?? ucfirst( $status );
 			$colors = [
 				'new'       => '#2271b1',
@@ -1187,21 +1187,21 @@ function hessqf_quote_list_column_content( $column, $post_id ) {
 			echo '<span style="display:inline-block;padding:2px 10px;border-radius:12px;background:' . esc_attr( $c ) . ';color:#fff;font-size:0.75rem;font-weight:600;">' . esc_html( $label ) . '</span>';
 			break;
 		case 'submitted':
-			$submitted = get_post_meta( $post_id, '_hessqf_submitted_at', true );
+			$submitted = get_post_meta( $post_id, '_hessqfe_submitted_at', true );
 			if ( ! $submitted ) { $submitted = get_the_date( 'Y-m-d H:i:s', $post_id ); }
 			echo esc_html( mysql2date( 'M j, Y g:i a', $submitted ) );
 			break;
 	}
 }
 
-function hessqf_quote_sortable_columns( $cols ) {
+function hessqfe_quote_sortable_columns( $cols ) {
 	$cols['qnumber']   = 'title';
 	$cols['submitted'] = 'date';
 	return $cols;
 }
 
-function hessqf_quote_row_actions( $actions, $post ) {
-	if ( $post->post_type !== 'hessqf_quote' ) return $actions;
+function hessqfe_quote_row_actions( $actions, $post ) {
+	if ( $post->post_type !== 'hessqfe_quote' ) return $actions;
 	// Remove default "View" since the CPT isn't public
 	unset( $actions['view'], $actions['inline hide-if-no-js'] );
 	return $actions;
@@ -1209,84 +1209,84 @@ function hessqf_quote_row_actions( $actions, $post ) {
 
 /* ── Status filter above the list table ─────────────────── */
 
-function hessqf_quote_status_filter() {
+function hessqfe_quote_status_filter() {
 	global $typenow;
-	if ( $typenow !== 'hessqf_quote' ) return;
-	$current = isset( $_GET['hessqf_status'] ) ? sanitize_key( $_GET['hessqf_status'] ) : '';
-	echo '<select name="hessqf_status"><option value="">All statuses</option>';
-	foreach ( hessqf_quote_statuses() as $k => $label ) {
+	if ( $typenow !== 'hessqfe_quote' ) return;
+	$current = isset( $_GET['hessqfe_status'] ) ? sanitize_key( $_GET['hessqfe_status'] ) : '';
+	echo '<select name="hessqfe_status"><option value="">All statuses</option>';
+	foreach ( hessqfe_quote_statuses() as $k => $label ) {
 		printf( '<option value="%s"%s>%s</option>', esc_attr( $k ), selected( $current, $k, false ), esc_html( $label ) );
 	}
 	echo '</select>';
 }
 
-function hessqf_quote_filter_query( $query ) {
+function hessqfe_quote_filter_query( $query ) {
 	global $pagenow, $typenow;
-	if ( is_admin() && $pagenow === 'edit.php' && $typenow === 'hessqf_quote' && ! empty( $_GET['hessqf_status'] ) ) {
-		$query->query_vars['meta_key']   = '_hessqf_status';
-		$query->query_vars['meta_value'] = sanitize_key( $_GET['hessqf_status'] );
+	if ( is_admin() && $pagenow === 'edit.php' && $typenow === 'hessqfe_quote' && ! empty( $_GET['hessqfe_status'] ) ) {
+		$query->query_vars['meta_key']   = '_hessqfe_status';
+		$query->query_vars['meta_value'] = sanitize_key( $_GET['hessqfe_status'] );
 	}
 	return $query;
 }
 
 /* ── Metabox: full quote detail on the edit screen ─────── */
 
-function hessqf_quote_add_meta_boxes() {
+function hessqfe_quote_add_meta_boxes() {
 	add_meta_box(
-		'hessqf_quote_detail',
+		'hessqfe_quote_detail',
 		'Quote Detail',
-		'hessqf_quote_render_detail_box',
-		'hessqf_quote',
+		'hessqfe_quote_render_detail_box',
+		'hessqfe_quote',
 		'normal',
 		'high'
 	);
 	add_meta_box(
-		'hessqf_quote_status',
+		'hessqfe_quote_status',
 		'Status & Notes',
-		'hessqf_quote_render_status_box',
-		'hessqf_quote',
+		'hessqfe_quote_render_status_box',
+		'hessqfe_quote',
 		'side',
 		'high'
 	);
 }
 
-function hessqf_quote_render_detail_box( $post ) {
-	wp_nonce_field( 'hessqf_save_quote', 'hessqf_quote_nonce' );
+function hessqfe_quote_render_detail_box( $post ) {
+	wp_nonce_field( 'hessqfe_save_quote', 'hessqfe_quote_nonce' );
 	$m = fn( $k ) => get_post_meta( $post->ID, $k, true );
 
 	$rows = [
-		[ 'Quote #',    $m( '_hessqf_quote_number' ) ],
-		[ 'Submitted',  $m( '_hessqf_submitted_at' ) ? mysql2date( 'M j, Y g:i a', $m( '_hessqf_submitted_at' ) ) : '' ],
-		[ 'IP Address', $m( '_hessqf_ip' ) ],
+		[ 'Quote #',    $m( '_hessqfe_quote_number' ) ],
+		[ 'Submitted',  $m( '_hessqfe_submitted_at' ) ? mysql2date( 'M j, Y g:i a', $m( '_hessqfe_submitted_at' ) ) : '' ],
+		[ 'IP Address', $m( '_hessqfe_ip' ) ],
 	];
 	$customer = [
-		[ 'Hess Associate', $m( '_hessqf_associate' ) ],
-		[ 'Name',     $m( '_hessqf_name' ) ],
-		[ 'Email',    $m( '_hessqf_email' ) ],
-		[ 'Phone',    $m( '_hessqf_phone' ) ],
-		[ 'Address',  $m( '_hessqf_address' ) ],
-		[ 'Timing',   $m( '_hessqf_schedule' ) ],
-		[ 'Comments', $m( '_hessqf_comments' ) ],
-		[ 'Existing Unit Brand',  $m( '_hessqf_existing_brand' ) ],
-		[ 'Existing Model #',     $m( '_hessqf_existing_model' ) ],
-		[ 'Existing Serial #',    $m( '_hessqf_existing_serial' ) ],
-		[ 'Attic / Closet Unit',  $m( '_hessqf_existing_attic_closet' ) ],
+		[ 'Hess Associate', $m( '_hessqfe_associate' ) ],
+		[ 'Name',     $m( '_hessqfe_name' ) ],
+		[ 'Email',    $m( '_hessqfe_email' ) ],
+		[ 'Phone',    $m( '_hessqfe_phone' ) ],
+		[ 'Address',  $m( '_hessqfe_address' ) ],
+		[ 'Timing',   $m( '_hessqfe_schedule' ) ],
+		[ 'Comments', $m( '_hessqfe_comments' ) ],
+		[ 'Existing Unit Brand',  $m( '_hessqfe_existing_brand' ) ],
+		[ 'Existing Model #',     $m( '_hessqfe_existing_model' ) ],
+		[ 'Existing Serial #',    $m( '_hessqfe_existing_serial' ) ],
+		[ 'Attic / Closet Unit',  $m( '_hessqfe_existing_attic_closet' ) ],
 	];
 	$unit = [
-		[ 'Model ID',     $m( '_hessqf_unit_model_id' ) ],
-		[ 'AHRI #',       $m( '_hessqf_unit_ahri' ) ],
-		[ 'Brand',        $m( '_hessqf_unit_brand' ) ],
-		[ 'System Type',  $m( '_hessqf_unit_system' ) ],
-		[ 'Capacity',     $m( '_hessqf_unit_capacity' ) ],
-		[ 'Tier',         $m( '_hessqf_unit_tier' ) ],
-		[ 'Stage',        $m( '_hessqf_unit_stage' ) ],
-		[ 'SEER2',        $m( '_hessqf_unit_seer2' ) ],
-		[ 'Outdoor Unit', $m( '_hessqf_unit_outdoor' ) ],
-		[ 'Indoor Unit',  $m( '_hessqf_unit_indoor' ) ],
-		[ 'System Price', $m( '_hessqf_unit_price' ) ],
-		[ 'Tax-adjusted', $m( '_hessqf_unit_price_taxed' ) ],
-		[ 'Monthly',      $m( '_hessqf_unit_monthly' ) ],
-		[ 'Daily',        $m( '_hessqf_unit_daily' ) ],
+		[ 'Model ID',     $m( '_hessqfe_unit_model_id' ) ],
+		[ 'AHRI #',       $m( '_hessqfe_unit_ahri' ) ],
+		[ 'Brand',        $m( '_hessqfe_unit_brand' ) ],
+		[ 'System Type',  $m( '_hessqfe_unit_system' ) ],
+		[ 'Capacity',     $m( '_hessqfe_unit_capacity' ) ],
+		[ 'Tier',         $m( '_hessqfe_unit_tier' ) ],
+		[ 'Stage',        $m( '_hessqfe_unit_stage' ) ],
+		[ 'SEER2',        $m( '_hessqfe_unit_seer2' ) ],
+		[ 'Outdoor Unit', $m( '_hessqfe_unit_outdoor' ) ],
+		[ 'Indoor Unit',  $m( '_hessqfe_unit_indoor' ) ],
+		[ 'System Price', $m( '_hessqfe_unit_price' ) ],
+		[ 'Tax-adjusted', $m( '_hessqfe_unit_price_taxed' ) ],
+		[ 'Monthly',      $m( '_hessqfe_unit_monthly' ) ],
+		[ 'Daily',        $m( '_hessqfe_unit_daily' ) ],
 	];
 
 	$with_notes = function( $value, $notes ) {
@@ -1294,14 +1294,14 @@ function hessqf_quote_render_detail_box( $post ) {
 		return $notes !== '' ? "{$value} ({$notes})" : $value;
 	};
 	$pricing = [
-		[ 'HESSeRized Value Package',          $m( '_hessqf_pricing_value_package' ) ],
-		[ 'Options',                           $with_notes( $m( '_hessqf_pricing_options' ),      $m( '_hessqf_pricing_options_breakdown' ) ) ],
-		[ 'Procurement/Labor/Materials/Other', $with_notes( $m( '_hessqf_pricing_installation' ), $m( '_hessqf_pricing_installation_breakdown' ) ) ],
-		[ 'Down Payment/Cash/Credit Card',     $with_notes( $m( '_hessqf_pricing_down_payment' ), $m( '_hessqf_pricing_down_notes' ) ) ],
-		[ 'Trade In',                          $with_notes( $m( '_hessqf_pricing_trade_in' ),     $m( '_hessqf_pricing_trade_in_notes' ) ) ],
-		[ 'Total Investment',                  $m( '_hessqf_pricing_total_investment' ) ],
-		[ 'Amount Financed',                   $m( '_hessqf_pricing_amount_financed' ) ],
-		[ '0% Interest Financing',             $m( '_hessqf_pricing_financing_0pct' ) ],
+		[ 'HESSeRized Value Package',          $m( '_hessqfe_pricing_value_package' ) ],
+		[ 'Options',                           $with_notes( $m( '_hessqfe_pricing_options' ),      $m( '_hessqfe_pricing_options_breakdown' ) ) ],
+		[ 'Procurement/Labor/Materials/Other', $with_notes( $m( '_hessqfe_pricing_installation' ), $m( '_hessqfe_pricing_installation_breakdown' ) ) ],
+		[ 'Down Payment/Cash/Credit Card',     $with_notes( $m( '_hessqfe_pricing_down_payment' ), $m( '_hessqfe_pricing_down_notes' ) ) ],
+		[ 'Trade In',                          $with_notes( $m( '_hessqfe_pricing_trade_in' ),     $m( '_hessqfe_pricing_trade_in_notes' ) ) ],
+		[ 'Total Investment',                  $m( '_hessqfe_pricing_total_investment' ) ],
+		[ 'Amount Financed',                   $m( '_hessqfe_pricing_amount_financed' ) ],
+		[ '0% Interest Financing',             $m( '_hessqfe_pricing_financing_0pct' ) ],
 	];
 
 	$render = function( $heading, $items ) {
@@ -1320,7 +1320,7 @@ function hessqf_quote_render_detail_box( $post ) {
 	$render( 'Selected System', $unit );
 	$render( 'Pricing & Investment', $pricing );
 
-	$signature = $m( '_hessqf_signature' );
+	$signature = $m( '_hessqfe_signature' );
 	if ( $signature && strpos( $signature, 'data:image/' ) === 0 ) {
 		echo '<h3 style="margin:16px 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;color:#1a3a5c;">Customer Signature</h3>';
 		echo '<div style="border:1px solid #ccd0d4;background:#fff;padding:8px;display:inline-block;">';
@@ -1329,40 +1329,40 @@ function hessqf_quote_render_detail_box( $post ) {
 	}
 }
 
-function hessqf_quote_render_status_box( $post ) {
-	$status  = get_post_meta( $post->ID, '_hessqf_status', true ) ?: 'new';
-	$notes   = get_post_meta( $post->ID, '_hessqf_notes',  true );
-	$labels  = hessqf_quote_statuses();
+function hessqfe_quote_render_status_box( $post ) {
+	$status  = get_post_meta( $post->ID, '_hessqfe_status', true ) ?: 'new';
+	$notes   = get_post_meta( $post->ID, '_hessqfe_notes',  true );
+	$labels  = hessqfe_quote_statuses();
 	?>
 	<p>
-		<label for="hessqf_status"><strong>Status</strong></label><br/>
-		<select name="hessqf_status" id="hessqf_status" style="width:100%;">
+		<label for="hessqfe_status"><strong>Status</strong></label><br/>
+		<select name="hessqfe_status" id="hessqfe_status" style="width:100%;">
 			<?php foreach ( $labels as $k => $l ) : ?>
 				<option value="<?php echo esc_attr( $k ); ?>" <?php selected( $status, $k ); ?>><?php echo esc_html( $l ); ?></option>
 			<?php endforeach; ?>
 		</select>
 	</p>
 	<p>
-		<label for="hessqf_notes"><strong>Internal Notes</strong></label><br/>
-		<textarea name="hessqf_notes" id="hessqf_notes" rows="6" style="width:100%;" placeholder="Follow-up notes, call log, next steps…"><?php echo esc_textarea( $notes ); ?></textarea>
+		<label for="hessqfe_notes"><strong>Internal Notes</strong></label><br/>
+		<textarea name="hessqfe_notes" id="hessqfe_notes" rows="6" style="width:100%;" placeholder="Follow-up notes, call log, next steps…"><?php echo esc_textarea( $notes ); ?></textarea>
 	</p>
 	<p class="description" style="margin:0;">Notes and status are internal only — never sent to the customer.</p>
 	<?php
 }
 
-function hessqf_quote_save_meta( $post_id, $post ) {
+function hessqfe_quote_save_meta( $post_id, $post ) {
 	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
-	if ( $post->post_type !== 'hessqf_quote' ) return;
+	if ( $post->post_type !== 'hessqfe_quote' ) return;
 	if ( ! current_user_can( 'edit_post', $post_id ) ) return;
-	if ( ! isset( $_POST['hessqf_quote_nonce'] ) || ! wp_verify_nonce( $_POST['hessqf_quote_nonce'], 'hessqf_save_quote' ) ) return;
+	if ( ! isset( $_POST['hessqfe_quote_nonce'] ) || ! wp_verify_nonce( $_POST['hessqfe_quote_nonce'], 'hessqfe_save_quote' ) ) return;
 
-	if ( isset( $_POST['hessqf_status'] ) ) {
-		$status = sanitize_key( $_POST['hessqf_status'] );
-		if ( array_key_exists( $status, hessqf_quote_statuses() ) ) {
-			update_post_meta( $post_id, '_hessqf_status', $status );
+	if ( isset( $_POST['hessqfe_status'] ) ) {
+		$status = sanitize_key( $_POST['hessqfe_status'] );
+		if ( array_key_exists( $status, hessqfe_quote_statuses() ) ) {
+			update_post_meta( $post_id, '_hessqfe_status', $status );
 		}
 	}
-	if ( isset( $_POST['hessqf_notes'] ) ) {
-		update_post_meta( $post_id, '_hessqf_notes', sanitize_textarea_field( wp_unslash( $_POST['hessqf_notes'] ) ) );
+	if ( isset( $_POST['hessqfe_notes'] ) ) {
+		update_post_meta( $post_id, '_hessqfe_notes', sanitize_textarea_field( wp_unslash( $_POST['hessqfe_notes'] ) ) );
 	}
 }

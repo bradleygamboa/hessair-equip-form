@@ -148,6 +148,7 @@ $has_data = ! empty( $config['systems'] );
           </div>
         </div>
 
+        <div class="hessqf-financing-approved">Financing with approved credit.</div>
         <div class="hessqf-financing-disclaimer">*Estimate based on 9.99% APR financing over 10 years with a minimum payment.</div>
       </div>
     </div>
@@ -260,7 +261,7 @@ $has_data = ! empty( $config['systems'] );
         <h3>Selected System</h3>
         <div class="hessqf-summary-rows" id="hessqfeStep2Summary"></div>
       </div>
-      <div class="hessqf-financing-disclaimer">0% Financing available with approved credit.</div>
+      <div class="hessqf-financing-approved">Financing with approved credit.</div>
       <div class="hessqf-financing-disclaimer">*Estimate based on 9.99% APR financing over 10 years with a minimum payment.</div>
 
       <div id="hessqfeAlertSubmitError" class="hessqf-alert hessqf-alert-error"></div>

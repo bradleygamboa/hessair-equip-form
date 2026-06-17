@@ -463,6 +463,7 @@
 .hqf-tc-img-disclaimer { font-size: 0.68rem; color: #9aa1ad; font-style: italic; margin: 3px 0 4px; text-align: center; }
 
 .hessqf-financing-disclaimer { font-size: 0.75rem; color: var(--hqf-muted); font-style: italic; margin-top: 10px; }
+.hessqf-financing-approved { font-size: 0.85rem; color: var(--hqf-text); font-weight: 600; margin-top: 10px; }
 
 .hessqf-financing-question {
   display: flex;

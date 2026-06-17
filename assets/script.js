@@ -1070,7 +1070,7 @@
         ['Existing Unit Brand',   document.getElementById('hessqfFieldExistingBrand')?.value.trim() || '—'],
         ['Existing Model #',      document.getElementById('hessqfFieldExistingModel')?.value.trim() || '—'],
         ['Existing Serial #',     document.getElementById('hessqfFieldExistingSerial')?.value.trim() || '—'],
-        ['Attic / Closet Unit',   document.getElementById('hessqfFieldExistingAtticCloset')?.checked ? 'Yes' : 'No'],
+        ['Attic / Closet Unit',   (document.querySelector('input[name="hessqfExistingAtticCloset"]:checked') || {}).value || 'None'],
         ['Quote Number',     state.quoteNumber],
         ['Selected Unit',    unitDisplayName(p)],
         ['Brand',            p.brand || '—'],
@@ -1160,7 +1160,7 @@
     const existingBrand    = document.getElementById('hessqfFieldExistingBrand')?.value.trim()   || '';
     const existingModel    = document.getElementById('hessqfFieldExistingModel')?.value.trim()   || '';
     const existingSerial   = document.getElementById('hessqfFieldExistingSerial')?.value.trim()  || '';
-    const existingAtticCloset = document.getElementById('hessqfFieldExistingAtticCloset')?.checked ? 'Yes' : 'No';
+    const existingAtticCloset = (document.querySelector('input[name="hessqfExistingAtticCloset"]:checked') || {}).value || 'None';
     const name      = document.getElementById('hessqfFieldName').value.trim();
     const phone     = document.getElementById('hessqfFieldPhone').value.trim();
     const email     = document.getElementById('hessqfFieldEmail').value.trim();

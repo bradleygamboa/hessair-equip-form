@@ -70,10 +70,18 @@ $has_data = ! empty( $config['systems'] );
         </div>
       </div>
       <div class="hessqf-form-group hessqf-full-width" style="margin-top:4px;">
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-          <input type="checkbox" id="hessqfFieldExistingAtticCloset" />
-          Attic or Closet Unit
-        </label>
+        <label style="display:block;margin-bottom:6px;font-weight:600;">Unit Location</label>
+        <div style="display:flex;gap:20px;align-items:center;">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+            <input type="radio" name="hessqfExistingAtticCloset" id="hessqfFieldExistingAtticClosetNone" value="" checked /> None
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+            <input type="radio" name="hessqfExistingAtticCloset" id="hessqfFieldExistingAtticClosetAttic" value="Attic Unit" /> Attic Unit
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+            <input type="radio" name="hessqfExistingAtticCloset" id="hessqfFieldExistingAtticClosetCloset" value="Closet Unit" /> Closet Unit
+          </label>
+        </div>
       </div>
     </div>
   </div>

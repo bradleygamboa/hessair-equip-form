@@ -320,15 +320,15 @@
    6-star badge without overlapping its neighbors. The parent table uses
    `table-layout: fixed`, so we MUST set an explicit width on the header
    (min-width is ignored under fixed layout). */
-#hessqfProductTable th[data-key="tier"] {
+#hessqfeProductTable th[data-key="tier"] {
   width: 130px !important;
 }
-#hessqfProductTable th[data-key="tier"],
-#hessqfProductTable td[data-key="tier"] {
+#hessqfeProductTable th[data-key="tier"],
+#hessqfeProductTable td[data-key="tier"] {
   white-space: nowrap;
   overflow: visible;
 }
-#hessqfProductTable td[data-key="tier"] .hqf-tier-badge {
+#hessqfeProductTable td[data-key="tier"] .hqf-tier-badge {
   display: inline-block;
   max-width: none;
 }
@@ -339,10 +339,10 @@
   letter-spacing: 0 !important;
 }
 /* Keep the monthly/daily money columns on a single line. */
-#hessqfProductTable td[data-key="monthly"],
-#hessqfProductTable td[data-key="daily"],
-#hessqfProductTable th[data-key="price"],
-#hessqfProductTable td[data-key="price"] {
+#hessqfeProductTable td[data-key="monthly"],
+#hessqfeProductTable td[data-key="daily"],
+#hessqfeProductTable th[data-key="price"],
+#hessqfeProductTable td[data-key="price"] {
   white-space: nowrap;
 }
 
@@ -350,22 +350,22 @@
    label — allow wrapping onto two lines so the text isn't clipped under
    table-layout:fixed. Borrow the extra space from SEER2 and Model ID, which
    have plenty of room to spare. */
-#hessqfProductTable th[data-key="monthly"],
-#hessqfProductTable th[data-key="daily"] {
+#hessqfeProductTable th[data-key="monthly"],
+#hessqfeProductTable th[data-key="daily"] {
   white-space: normal;
   overflow: visible;
   width: 125px !important;
 }
-#hessqfProductTable th[data-key="seer2"] {
+#hessqfeProductTable th[data-key="seer2"] {
   width: 65px !important;
 }
-#hessqfProductTable th[data-key="model_id"] {
+#hessqfeProductTable th[data-key="model_id"] {
   width: 95px !important;
 }
 
 /* Make the per-row Compare button compact so the Action column doesn't eat
    horizontal space the Stars column needs for the 6-star pill. */
-#hessqfProductTable .hqf-add-btn {
+#hessqfeProductTable .hqf-add-btn {
   padding: 4px 10px !important;
   font-size: 0.74rem !important;
   min-height: 0;
@@ -375,8 +375,8 @@
 
 /* Trim the Action column width by ~32px since the Compare button is now
    compact. Targets the last column header + cells in the units table. */
-#hessqfProductTable thead th:last-child,
-#hessqfProductTable tbody td:last-child {
+#hessqfeProductTable thead th:last-child,
+#hessqfeProductTable tbody td:last-child {
   width: 88px;
   max-width: 88px;
   padding-left: 6px;
@@ -681,12 +681,12 @@ button.hqf-tc-remove {
 
 /* Force equal column widths for compare-unit columns and package columns
    so every Select button comes out identical width within its table. */
-#hessqfTierCardsGrid .hqf-tc,
-#hessqfPackageGrid .hqf-tc { table-layout: fixed; }
-#hessqfTierCardsGrid .hqf-tc .hqf-tc-corner,
-#hessqfPackageGrid  .hqf-tc .hqf-tc-corner { width: 170px; }
-#hessqfTierCardsGrid .hqf-tc .hqf-tc-col-head,
-#hessqfPackageGrid  .hqf-tc .hqf-tc-col-head { width: auto; }
+#hessqfeTierCardsGrid .hqf-tc,
+#hessqfePackageGrid .hqf-tc { table-layout: fixed; }
+#hessqfeTierCardsGrid .hqf-tc .hqf-tc-corner,
+#hessqfePackageGrid  .hqf-tc .hqf-tc-corner { width: 170px; }
+#hessqfeTierCardsGrid .hqf-tc .hqf-tc-col-head,
+#hessqfePackageGrid  .hqf-tc .hqf-tc-col-head { width: auto; }
 
 @media (max-width: 760px) {
   .hqf-tc th, .hqf-tc td { padding: 7px 6px; font-size: 0.75rem; }

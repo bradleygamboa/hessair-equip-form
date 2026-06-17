@@ -52,6 +52,30 @@ $has_data = ! empty( $config['systems'] );
         <input type="text" id="hessqfFieldCustomerAddress" placeholder="123 Main St, Brownsville, TX 78520" />
       </div>
     </div>
+
+    <div class="hessqf-card-title" style="margin-top:18px;">Existing Outdoor Unit</div>
+    <div class="hessqf-form-grid">
+      <div class="hessqf-full-width hessqf-contact-row">
+        <div class="hessqf-form-group">
+          <label>Brand</label>
+          <input type="text" id="hessqfFieldExistingBrand" placeholder="e.g. Carrier" />
+        </div>
+        <div class="hessqf-form-group">
+          <label>Model Number</label>
+          <input type="text" id="hessqfFieldExistingModel" placeholder="Model #" />
+        </div>
+        <div class="hessqf-form-group">
+          <label>Serial Number</label>
+          <input type="text" id="hessqfFieldExistingSerial" placeholder="Serial #" />
+        </div>
+      </div>
+      <div class="hessqf-form-group hessqf-full-width" style="margin-top:4px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="hessqfFieldExistingAtticCloset" />
+          Attic or Closet Unit
+        </label>
+      </div>
+    </div>
   </div>
 
   <!-- ── Step Indicator ── -->

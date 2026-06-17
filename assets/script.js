@@ -1067,6 +1067,10 @@
       const withNotes = (value, items) => (items && items.length) ? `${value} (${items.join(', ')})` : value;
       const rows = [
         ['Hess Associate',  document.getElementById('hessqfFieldAssociate')?.value.trim() || '—'],
+        ['Existing Unit Brand',   document.getElementById('hessqfFieldExistingBrand')?.value.trim() || '—'],
+        ['Existing Model #',      document.getElementById('hessqfFieldExistingModel')?.value.trim() || '—'],
+        ['Existing Serial #',     document.getElementById('hessqfFieldExistingSerial')?.value.trim() || '—'],
+        ['Attic / Closet Unit',   document.getElementById('hessqfFieldExistingAtticCloset')?.checked ? 'Yes' : 'No'],
         ['Quote Number',     state.quoteNumber],
         ['Selected Unit',    unitDisplayName(p)],
         ['Brand',            p.brand || '—'],
@@ -1152,7 +1156,11 @@
     const optionsBreakdown      = (ms.optionsList || []).map(o => `${o.label}: ${fmt$(o.amount)}`).join('; ');
     const installationBreakdown = (ms.installationList || []).map(o => `${o.label}: ${fmt$(o.amount)}`).join('; ');
 
-    const associate = document.getElementById('hessqfFieldAssociate').value.trim();
+    const associate        = document.getElementById('hessqfFieldAssociate').value.trim();
+    const existingBrand    = document.getElementById('hessqfFieldExistingBrand')?.value.trim()   || '';
+    const existingModel    = document.getElementById('hessqfFieldExistingModel')?.value.trim()   || '';
+    const existingSerial   = document.getElementById('hessqfFieldExistingSerial')?.value.trim()  || '';
+    const existingAtticCloset = document.getElementById('hessqfFieldExistingAtticCloset')?.checked ? 'Yes' : 'No';
     const name      = document.getElementById('hessqfFieldName').value.trim();
     const phone     = document.getElementById('hessqfFieldPhone').value.trim();
     const email     = document.getElementById('hessqfFieldEmail').value.trim();
@@ -1173,6 +1181,10 @@
     fd.append('nonce',        hessqfData.nonce);
     fd.append('quoteNumber',  state.quoteNumber);
     fd.append('associate',    associate);
+    fd.append('existingBrand',       existingBrand);
+    fd.append('existingModel',       existingModel);
+    fd.append('existingSerial',      existingSerial);
+    fd.append('existingAtticCloset', existingAtticCloset);
     fd.append('name',         name);
     fd.append('phone',        phone);
     fd.append('email',        email);

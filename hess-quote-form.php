@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Hess Air Quote Form (v2)
  * Description:       Multi-step HVAC quote form. Pulls product data from a Google Sheet (published CSV) and emails quotes via Mailgun.
- * Version:           3.5.38
+ * Version:           3.5.39
  * Author:            Hess Air
  * Requires at least: 5.8
  * Requires PHP:      7.4
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'HESSQF_VERSION',    '3.5.38' );
+define( 'HESSQF_VERSION',    '3.5.39' );
 define( 'HESSQF_SLUG',       'hess-quote-form' );
 define( 'HESSQF_DIR',        plugin_dir_path( __FILE__ ) );
 define( 'HESSQF_URL',        plugin_dir_url( __FILE__ ) );
@@ -580,7 +580,11 @@ function hessqf_handle_submission() {
 	check_ajax_referer( 'hessqf_submit', 'nonce' );
 
 	$quote_num = sanitize_text_field( $_POST['quoteNumber'] ?? '' );
-	$associate = sanitize_text_field( $_POST['associate']   ?? '' );
+	$associate             = sanitize_text_field( $_POST['associate']          ?? '' );
+	$existing_brand        = sanitize_text_field( $_POST['existingBrand']       ?? '' );
+	$existing_model        = sanitize_text_field( $_POST['existingModel']       ?? '' );
+	$existing_serial       = sanitize_text_field( $_POST['existingSerial']      ?? '' );
+	$existing_attic_closet = sanitize_text_field( $_POST['existingAtticCloset'] ?? '' );
 	$name      = sanitize_text_field( $_POST['name']        ?? '' );
 	$phone     = sanitize_text_field( $_POST['phone']       ?? '' );
 	$email     = sanitize_email( $_POST['email']            ?? '' );
@@ -635,24 +639,29 @@ function hessqf_handle_submission() {
 
 	// Persist the quote as a hessqf_quote CPT so it's reviewable in the admin
 	$quote_post_id = hessqf_store_quote( [
-		'quoteNumber' => $quote_num,
-		'associate'   => $associate,
-		'name'        => $name,
-		'phone'       => $phone,
-		'email'       => $email,
-		'address'     => $address,
-		'schedule'    => $schedule,
-		'comments'    => $comments,
-		'signature'   => $signature,
-		'unit'        => $unit,
-		'pricing'     => $pricing,
+		'quoteNumber'         => $quote_num,
+		'associate'           => $associate,
+		'existingBrand'       => $existing_brand,
+		'existingModel'       => $existing_model,
+		'existingSerial'      => $existing_serial,
+		'existingAtticCloset' => $existing_attic_closet,
+		'name'                => $name,
+		'phone'               => $phone,
+		'email'               => $email,
+		'address'             => $address,
+		'schedule'            => $schedule,
+		'comments'            => $comments,
+		'signature'           => $signature,
+		'unit'                => $unit,
+		'pricing'             => $pricing,
 	] );
 
 	$notify_to  = get_option( 'hessqf_notify_email', get_option( 'admin_email' ) );
 	$notify_cc  = hessqf_parse_email_list( get_option( 'hessqf_notify_cc',  '' ) );
 	$notify_bcc = hessqf_parse_email_list( get_option( 'hessqf_notify_bcc', '' ) );
 
-	$admin_html = hessqf_build_admin_email_html( $quote_num, $associate, $name, $phone, $email, $address, $schedule, $comments, $unit, $pricing, $quote_post_id, $signature );
+	$existing   = [ 'brand' => $existing_brand, 'model' => $existing_model, 'serial' => $existing_serial, 'atticCloset' => $existing_attic_closet ];
+	$admin_html = hessqf_build_admin_email_html( $quote_num, $associate, $name, $phone, $email, $address, $schedule, $comments, $unit, $pricing, $quote_post_id, $signature, $existing );
 	$cust_html  = hessqf_build_customer_email_html( $quote_num, $name, $unit, $pricing );
 
 	// When the customer has both picked a schedule AND signed the quote, treat
@@ -853,7 +862,7 @@ function hessqf_pricing_rows( $pricing ) {
 
 /* ── Email body builders ── */
 
-function hessqf_build_admin_email_html( $quote_num, $associate, $name, $phone, $email, $address, $schedule, $comments, $unit, $pricing, $quote_post_id = 0, $signature = '' ) {
+function hessqf_build_admin_email_html( $quote_num, $associate, $name, $phone, $email, $address, $schedule, $comments, $unit, $pricing, $quote_post_id = 0, $signature = '', $existing = [] ) {
 	$contact_rows = [
 		[ 'Hess Associate', $associate ],
 		[ 'Name',    $name ],
@@ -863,6 +872,12 @@ function hessqf_build_admin_email_html( $quote_num, $associate, $name, $phone, $
 		[ 'Timing',  $schedule ],
 	];
 	if ( $comments ) { $contact_rows[] = [ 'Notes', $comments ]; }
+	if ( ! empty( $existing['brand'] ) || ! empty( $existing['model'] ) || ! empty( $existing['serial'] ) ) {
+		$contact_rows[] = [ 'Existing Unit Brand',  $existing['brand']  ?? '' ];
+		$contact_rows[] = [ 'Existing Model #',     $existing['model']  ?? '' ];
+		$contact_rows[] = [ 'Existing Serial #',    $existing['serial'] ?? '' ];
+		$contact_rows[] = [ 'Attic / Closet Unit',  $existing['atticCloset'] ?? '' ];
+	}
 
 	$capacity_display = $unit['capacity'] !== '' ? ( preg_match( '/ton/i', (string) $unit['capacity'] ) ? $unit['capacity'] : $unit['capacity'] . ' Ton' ) : '';
 
@@ -1032,9 +1047,13 @@ function hessqf_store_quote( $payload ) {
 	}
 
 	$meta = [
-		'_hessqf_quote_number' => $payload['quoteNumber'] ?? '',
-		'_hessqf_associate'    => $payload['associate']   ?? '',
-		'_hessqf_name'         => $payload['name']        ?? '',
+		'_hessqf_quote_number'          => $payload['quoteNumber']   ?? '',
+		'_hessqf_associate'             => $payload['associate']    ?? '',
+		'_hessqf_existing_brand'        => $payload['existingBrand']       ?? '',
+		'_hessqf_existing_model'        => $payload['existingModel']       ?? '',
+		'_hessqf_existing_serial'       => $payload['existingSerial']      ?? '',
+		'_hessqf_existing_attic_closet' => $payload['existingAtticCloset'] ?? '',
+		'_hessqf_name'                  => $payload['name']        ?? '',
 		'_hessqf_phone'        => $payload['phone']       ?? '',
 		'_hessqf_email'        => $payload['email']       ?? '',
 		'_hessqf_address'      => $payload['address']     ?? '',
@@ -1248,6 +1267,10 @@ function hessqf_quote_render_detail_box( $post ) {
 		[ 'Address',  $m( '_hessqf_address' ) ],
 		[ 'Timing',   $m( '_hessqf_schedule' ) ],
 		[ 'Comments', $m( '_hessqf_comments' ) ],
+		[ 'Existing Unit Brand',  $m( '_hessqf_existing_brand' ) ],
+		[ 'Existing Model #',     $m( '_hessqf_existing_model' ) ],
+		[ 'Existing Serial #',    $m( '_hessqf_existing_serial' ) ],
+		[ 'Attic / Closet Unit',  $m( '_hessqf_existing_attic_closet' ) ],
 	];
 	$unit = [
 		[ 'Model ID',     $m( '_hessqf_unit_model_id' ) ],

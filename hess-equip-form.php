@@ -15,8 +15,8 @@ define( 'HESSQFE_VERSION',    '3.5.42' );
 define( 'HESSQFE_SLUG',       'hess-equip-form' );
 define( 'HESSQFE_DIR',        plugin_dir_path( __FILE__ ) );
 define( 'HESSQFE_URL',        plugin_dir_url( __FILE__ ) );
-define( 'HESSQFE_CACHE_KEY',  'hessqfe_systems_cache_v8' );
-define( 'HESSQFE_LASTGOOD_OPTION', 'hessqfe_systems_last_good' );
+define( 'HESSQFE_CACHE_KEY',  'hessqf_systems_cache_v8' );
+define( 'HESSQFE_LASTGOOD_OPTION', 'hessqf_systems_last_good' );
 
 /* ─────────────────────────────────────────────
    BOOTSTRAP — register hooks
@@ -85,7 +85,7 @@ function hessqfe_get_systems( $bypass_cache = false ) {
 		}
 	}
 
-	$url = trim( get_option( 'hessqfe_sheet_url', '' ) );
+	$url = trim( get_option( 'hessqf_sheet_url', '' ) );
 	if ( ! $url ) {
 		return [];
 	}
@@ -104,7 +104,7 @@ function hessqfe_get_systems( $bypass_cache = false ) {
 	}
 
 	if ( ! empty( $systems ) ) {
-		$ttl_min = max( 1, (int) get_option( 'hessqfe_cache_ttl', 5 ) );
+		$ttl_min = max( 1, (int) get_option( 'hessqf_cache_ttl', 5 ) );
 		set_transient( HESSQFE_CACHE_KEY, $systems, $ttl_min * MINUTE_IN_SECONDS );
 		update_option( HESSQFE_LASTGOOD_OPTION, $systems, false );
 		return $systems;
@@ -284,7 +284,7 @@ function hessqfe_shortcode( $atts = [] ) {
 	// One-time migration (v3.1.2): turn on the Cap. Stg. column for installs
 	// that were running before it became visible by default.
 	if ( ! get_option( 'hessqfe_capstg_migrated' ) ) {
-		$saved = get_option( 'hessqfe_table_columns', null );
+		$saved = get_option( 'hessqf_table_columns', null );
 		if ( is_array( $saved ) && isset( $saved['stage'] ) ) {
 			$saved['stage']['visible'] = 1;
 			$saved['stage']['label']   = 'Cap. Stg.';
@@ -293,10 +293,10 @@ function hessqfe_shortcode( $atts = [] ) {
 		update_option( 'hessqfe_capstg_migrated', 1 );
 	}
 
-	$table_cols = get_option( 'hessqfe_table_columns', hessqfe_default_table_columns() );
-	$card_flds  = get_option( 'hessqfe_card_fields',   hessqfe_default_card_fields() );
-	$tax_default= get_option( 'hessqfe_tax_default', '' );
-	$year_mode  = get_option( 'hessqfe_year_mode', 'all' ); // 'all' | 'latest'
+	$table_cols = get_option( 'hessqf_table_columns', hessqfe_default_table_columns() );
+	$card_flds  = get_option( 'hessqf_card_fields',   hessqfe_default_card_fields() );
+	$tax_default= get_option( 'hessqf_tax_default', '' );
+	$year_mode  = get_option( 'hessqf_year_mode', 'all' ); // 'all' | 'latest'
 
 	// Year filtering: 'all' = no filter, 'latest' = newest year, numeric = specific year
 	if ( $systems ) {
@@ -361,17 +361,17 @@ function hessqfe_flush_cache_action() {
 function hessqfe_render_settings_page() {
 	if ( ! current_user_can( 'manage_options' ) ) { return; }
 
-	$sheet_url  = get_option( 'hessqfe_sheet_url', '' );
-	$cache_ttl  = get_option( 'hessqfe_cache_ttl', 5 );
-	$year_mode  = get_option( 'hessqfe_year_mode', 'all' );
-	$tax_def    = get_option( 'hessqfe_tax_default', '' );
+	$sheet_url  = get_option( 'hessqf_sheet_url', '' );
+	$cache_ttl  = get_option( 'hessqf_cache_ttl', 5 );
+	$year_mode  = get_option( 'hessqf_year_mode', 'all' );
+	$tax_def    = get_option( 'hessqf_tax_default', '' );
 	$notify     = get_option( 'hessqfe_notify_email', get_option( 'admin_email' ) );
 	$notify_cc  = get_option( 'hessqfe_notify_cc',  '' );
 	$notify_bcc = get_option( 'hessqfe_notify_bcc', '' );
 	$mg_key     = get_option( 'hessqfe_mailgun_api_key', '' );
 	$mg_domain  = get_option( 'hessqfe_mailgun_domain', '' );
-	$table_cols = get_option( 'hessqfe_table_columns', hessqfe_default_table_columns() );
-	$card_flds  = get_option( 'hessqfe_card_fields',   hessqfe_default_card_fields() );
+	$table_cols = get_option( 'hessqf_table_columns', hessqfe_default_table_columns() );
+	$card_flds  = get_option( 'hessqf_card_fields',   hessqfe_default_card_fields() );
 
 	// Quick data-source sanity check
 	$systems = hessqfe_get_systems();

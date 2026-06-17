@@ -16,7 +16,7 @@ $has_data = ! empty( $config['systems'] );
   <?php if ( ! $has_data ) : ?>
     <div class="hessqf-alert hessqf-alert-warning hessqf-show" style="margin-bottom:16px;">
       <strong>No product data loaded.</strong> An administrator needs to configure the Google Sheets URL in
-      <em>Settings → Hess Quote Form</em>.
+      <em>Settings → Hesserized Quotes</em>.
     </div>
   <?php endif; ?>
 

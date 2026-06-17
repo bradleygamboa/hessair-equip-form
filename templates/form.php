@@ -139,7 +139,7 @@ $has_data = ! empty( $config['systems'] );
             <label class="hessqf-radio-option"><input type="radio" name="hessqfFinancing0pct" id="hessqfFinancing0pctNo" value="No" /> No</label>
           </div>
         </div>
-        <div class="hessqf-financing-disclaimer">0% Financing available with approved credit.</div>
+
         <div class="hessqf-financing-disclaimer">*Estimate based on 9.99% APR financing over 10 years with a minimum payment.</div>
       </div>
     </div>

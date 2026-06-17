@@ -7,8 +7,8 @@
   'use strict';
 
   /* ── Boot: parse inline JSON ── */
-  const dataEl   = document.getElementById('hessqfSystemsData');
-  const configEl = document.getElementById('hessqfConfigData');
+  const dataEl   = document.getElementById('hessqfeSystemsData');
+  const configEl = document.getElementById('hessqfeConfigData');
   if (!dataEl || !configEl) return;
 
   let SYSTEMS = [];
@@ -133,9 +133,9 @@
     const systems    = uniq(SYSTEMS.map(s => s.system)).sort();
     const capacities = uniq(SYSTEMS.map(s => s.capacity)).sort((a, b) => a - b);
 
-    fillSelect('hessqfFilterBrand',    brands,     'All Brands');
-    fillSelect('hessqfFilterSystem',   systems,    'All Types');
-    fillSelect('hessqfFilterCapacity', capacities, 'All Capacities');
+    fillSelect('hessqfeFilterBrand',    brands,     'All Brands');
+    fillSelect('hessqfeFilterSystem',   systems,    'All Types');
+    fillSelect('hessqfeFilterCapacity', capacities, 'All Capacities');
   }
 
   function fillSelect(id, values, placeholder) {
@@ -147,9 +147,9 @@
 
   /* ── Filters ── */
   function applyFilters() {
-    const brand    = (document.getElementById('hessqfFilterBrand')?.value    || '');
-    const system   = (document.getElementById('hessqfFilterSystem')?.value   || '');
-    const capacity = (document.getElementById('hessqfFilterCapacity')?.value || '');
+    const brand    = (document.getElementById('hessqfeFilterBrand')?.value    || '');
+    const system   = (document.getElementById('hessqfeFilterSystem')?.value   || '');
+    const capacity = (document.getElementById('hessqfeFilterCapacity')?.value || '');
 
     state.hasFilter = !!(brand || system || capacity);
 
@@ -164,14 +164,14 @@
       });
     }
 
-    const el = document.getElementById('hessqfAlertNoResults');
+    const el = document.getElementById('hessqfeAlertNoResults');
     if (el) el.classList.toggle('hessqf-show', state.hasFilter && state.filtered.length === 0);
     renderTable();
   }
 
   function clearFilters() {
     // Reset filter dropdowns
-    ['hessqfFilterBrand', 'hessqfFilterSystem', 'hessqfFilterCapacity'].forEach(id => {
+    ['hessqfeFilterBrand', 'hessqfeFilterSystem', 'hessqfeFilterCapacity'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
@@ -185,16 +185,16 @@
     state.sortAsc         = true;
 
     // Hide downstream sections (compare + package tables, selection bar)
-    const cardsSec = document.getElementById('hessqfTierCardsSection');
-    const pkgSec   = document.getElementById('hessqfPackageSection');
-    const barSec   = document.getElementById('hessqfSelectionBarSection');
+    const cardsSec = document.getElementById('hessqfeTierCardsSection');
+    const pkgSec   = document.getElementById('hessqfePackageSection');
+    const barSec   = document.getElementById('hessqfeSelectionBarSection');
     if (cardsSec) cardsSec.style.display = 'none';
     if (pkgSec)   pkgSec.style.display   = 'none';
     if (barSec)   barSec.style.display   = 'none';
 
     // Clear out grids so stale content doesn't flash on next open
-    const grid    = document.getElementById('hessqfTierCardsGrid');
-    const pkgGrid = document.getElementById('hessqfPackageGrid');
+    const grid    = document.getElementById('hessqfeTierCardsGrid');
+    const pkgGrid = document.getElementById('hessqfePackageGrid');
     if (grid)    grid.innerHTML    = '';
     if (pkgGrid) pkgGrid.innerHTML = '';
     resetMatrixState();
@@ -203,14 +203,14 @@
     populateCostAdjustments();
 
     // Clear selection-bar display values
-    ['hessqfSelectedUnitDisplay','hessqfSelectedPriceDisplay','hessqfSelectedSeer2Display'].forEach(id => {
+    ['hessqfeSelectedUnitDisplay','hessqfeSelectedPriceDisplay','hessqfeSelectedSeer2Display'].forEach(id => {
       const e = document.getElementById(id);
       if (e) e.textContent = '—';
     });
 
     // Hide alerts
-    document.getElementById('hessqfAlertNoResults')  ?.classList.remove('hessqf-show');
-    document.getElementById('hessqfAlertNoSelection')?.classList.remove('hessqf-show');
+    document.getElementById('hessqfeAlertNoResults')  ?.classList.remove('hessqf-show');
+    document.getElementById('hessqfeAlertNoSelection')?.classList.remove('hessqf-show');
 
     renderTable();
   }
@@ -236,7 +236,7 @@
 
   /* ── Render table ── */
   function renderTableHead() {
-    const head = document.getElementById('hessqfProductTableHead');
+    const head = document.getElementById('hessqfeProductTableHead');
     if (!head) return;
     const cols = visibleColumns();
     head.innerHTML = cols.map(c => {
@@ -252,13 +252,13 @@
 
   function renderTable() {
     renderTableHead();
-    const tbody = document.getElementById('hessqfProductTableBody');
+    const tbody = document.getElementById('hessqfeProductTableBody');
     if (!tbody) return;
 
     const cols = visibleColumns();
     const colCount = cols.length + 1;
 
-    const financingInfo = document.getElementById('hessqfFinancingInfo');
+    const financingInfo = document.getElementById('hessqfeFinancingInfo');
 
     // Prompt state — user hasn't picked any filter yet
     if (!state.hasFilter) {
@@ -306,7 +306,7 @@
      whole table always fits its container width. We only switch columns to
      explicit pixel widths once the user begins dragging a resize handle. */
   function initResizableColumns() {
-    const table = document.getElementById('hessqfProductTable');
+    const table = document.getElementById('hessqfeProductTable');
     if (!table) return;
     if (window.innerWidth <= 700) return;
 
@@ -374,8 +374,8 @@
   /* ── Show/hide the Cost Adjustment/Selection Bar
      sections based on whether units are compared / a unit is selected. ── */
   function updateSectionVisibility() {
-    const cardsSec = document.getElementById('hessqfTierCardsSection');
-    const barSec   = document.getElementById('hessqfSelectionBarSection');
+    const cardsSec = document.getElementById('hessqfeTierCardsSection');
+    const barSec   = document.getElementById('hessqfeSelectionBarSection');
     const hasAny   = state.comparedUnits.length > 0;
     const hasSel   = !!state.selectedUnit;
     if (cardsSec) cardsSec.style.display = hasAny ? 'block' : 'none';
@@ -456,7 +456,7 @@ function parseMoney(v) {
 
   /* ── Top table: per-unit compare ── */
   function buildCompareTable() {
-    const grid = document.getElementById('hessqfTierCardsGrid');
+    const grid = document.getElementById('hessqfeTierCardsGrid');
     if (!grid) return;
 
     const units = state.comparedUnits;
@@ -558,7 +558,7 @@ function parseMoney(v) {
     populateCostAdjustments();
     updateSectionVisibility();
     updateSelectionBar();
-    const el = document.getElementById('hessqfAlertNoSelection');
+    const el = document.getElementById('hessqfeAlertNoSelection');
     if (el) el.classList.remove('hessqf-show');
   }
 
@@ -566,14 +566,14 @@ function parseMoney(v) {
      Single set of inputs in the Selection Bar section, applied to
      whichever unit is currently selected. ── */
   const COST_ADJ_FIELDS = [
-    ['hessqfAdjDown',         'down'],
-    ['hessqfAdjTradeIn',      'tradeIn'],
+    ['hessqfeAdjDown',         'down'],
+    ['hessqfeAdjTradeIn',      'tradeIn'],
   ];
 
   // Notes line items for Down Payment, Trade In
   const NOTE_FIELDS = [
-    { key: 'downNotes',         addBtn: 'hessqfAddDownNoteBtn',         form: 'hessqfAddDownNoteForm',         input: 'hessqfNewDownNote',         save: 'hessqfNewDownNoteAdd',         cancel: 'hessqfNewDownNoteCancel',         list: 'hessqfDownNotesList' },
-    { key: 'tradeInNotes',      addBtn: 'hessqfAddTradeInNoteBtn',      form: 'hessqfAddTradeInNoteForm',      input: 'hessqfNewTradeInNote',      save: 'hessqfNewTradeInNoteAdd',      cancel: 'hessqfNewTradeInNoteCancel',      list: 'hessqfTradeInNotesList' },
+    { key: 'downNotes',         addBtn: 'hessqfeAddDownNoteBtn',         form: 'hessqfeAddDownNoteForm',         input: 'hessqfeNewDownNote',         save: 'hessqfeNewDownNoteAdd',         cancel: 'hessqfeNewDownNoteCancel',         list: 'hessqfeDownNotesList' },
+    { key: 'tradeInNotes',      addBtn: 'hessqfeAddTradeInNoteBtn',      form: 'hessqfeAddTradeInNoteForm',      input: 'hessqfeNewTradeInNote',      save: 'hessqfeNewTradeInNoteAdd',      cancel: 'hessqfeNewTradeInNoteCancel',      list: 'hessqfeTradeInNotesList' },
   ];
 
   function recalcOptionsTotal(u) {
@@ -589,7 +589,7 @@ function parseMoney(v) {
   }
 
   function updateOptionsInputDisplay() {
-    const inp = document.getElementById('hessqfAdjOptions');
+    const inp = document.getElementById('hessqfeAdjOptions');
     if (!inp) return;
     const u = state.selectedUnit;
     if (!u) { inp.value = ''; return; }
@@ -599,7 +599,7 @@ function parseMoney(v) {
   }
 
   function updateInstallationInputDisplay() {
-    const inp = document.getElementById('hessqfAdjInstallation');
+    const inp = document.getElementById('hessqfeAdjInstallation');
     if (!inp) return;
     const u = state.selectedUnit;
     if (!u) { inp.value = ''; return; }
@@ -609,7 +609,7 @@ function parseMoney(v) {
   }
 
   function renderOptionsList() {
-    const listEl = document.getElementById('hessqfOptionsList');
+    const listEl = document.getElementById('hessqfeOptionsList');
     if (!listEl) return;
     const u = state.selectedUnit;
     const items = (u && matrixState[u._id] && matrixState[u._id].optionsList) || [];
@@ -636,7 +636,7 @@ function parseMoney(v) {
   }
 
   function renderInstallationList() {
-    const listEl = document.getElementById('hessqfInstallationList');
+    const listEl = document.getElementById('hessqfeInstallationList');
     if (!listEl) return;
     const u = state.selectedUnit;
     const items = (u && matrixState[u._id] && matrixState[u._id].installationList) || [];
@@ -701,16 +701,16 @@ function parseMoney(v) {
       inp.value = val ? formatMoneyDisplay(val) : '';
     });
 
-    const addBtn  = document.getElementById('hessqfAddOptionBtn');
-    const addForm = document.getElementById('hessqfAddOptionForm');
+    const addBtn  = document.getElementById('hessqfeAddOptionBtn');
+    const addForm = document.getElementById('hessqfeAddOptionForm');
     if (addBtn) addBtn.disabled = !u;
     if (addForm && !u) addForm.style.display = 'none';
 
     updateOptionsInputDisplay();
     renderOptionsList();
 
-    const installAddBtn  = document.getElementById('hessqfAddInstallationBtn');
-    const installAddForm = document.getElementById('hessqfAddInstallationForm');
+    const installAddBtn  = document.getElementById('hessqfeAddInstallationBtn');
+    const installAddForm = document.getElementById('hessqfeAddInstallationForm');
     if (installAddBtn) installAddBtn.disabled = !u;
     if (installAddForm && !u) installAddForm.style.display = 'none';
 
@@ -748,12 +748,12 @@ function parseMoney(v) {
     });
 
     // Add Option (line items)
-    const addBtn    = document.getElementById('hessqfAddOptionBtn');
-    const addForm   = document.getElementById('hessqfAddOptionForm');
-    const labelInp  = document.getElementById('hessqfNewOptionLabel');
-    const costInp   = document.getElementById('hessqfNewOptionCost');
-    const saveBtn   = document.getElementById('hessqfNewOptionAdd');
-    const cancelBtn = document.getElementById('hessqfNewOptionCancel');
+    const addBtn    = document.getElementById('hessqfeAddOptionBtn');
+    const addForm   = document.getElementById('hessqfeAddOptionForm');
+    const labelInp  = document.getElementById('hessqfeNewOptionLabel');
+    const costInp   = document.getElementById('hessqfeNewOptionCost');
+    const saveBtn   = document.getElementById('hessqfeNewOptionAdd');
+    const cancelBtn = document.getElementById('hessqfeNewOptionCancel');
 
     const closeAddForm = () => {
       if (labelInp) labelInp.value = '';
@@ -798,12 +798,12 @@ function parseMoney(v) {
     });
 
     // Add Installation/Procurement item (line items)
-    const installAddBtn    = document.getElementById('hessqfAddInstallationBtn');
-    const installAddForm   = document.getElementById('hessqfAddInstallationForm');
-    const installLabelInp  = document.getElementById('hessqfNewInstallationLabel');
-    const installCostInp   = document.getElementById('hessqfNewInstallationCost');
-    const installSaveBtn   = document.getElementById('hessqfNewInstallationAdd');
-    const installCancelBtn = document.getElementById('hessqfNewInstallationCancel');
+    const installAddBtn    = document.getElementById('hessqfeAddInstallationBtn');
+    const installAddForm   = document.getElementById('hessqfeAddInstallationForm');
+    const installLabelInp  = document.getElementById('hessqfeNewInstallationLabel');
+    const installCostInp   = document.getElementById('hessqfeNewInstallationCost');
+    const installSaveBtn   = document.getElementById('hessqfeNewInstallationAdd');
+    const installCancelBtn = document.getElementById('hessqfeNewInstallationCancel');
 
     const closeInstallForm = () => {
       if (installLabelInp) installLabelInp.value = '';
@@ -905,32 +905,32 @@ function parseMoney(v) {
     const p = state.selectedUnit;
     const setEl = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
 
-    setEl('hessqfSelectedUnitDisplay',  p ? unitDisplayName(p) : '—');
+    setEl('hessqfeSelectedUnitDisplay',  p ? unitDisplayName(p) : '—');
 
     if (!p) {
-      setEl('hessqfSelectedPriceDisplay', '—');
-      setEl('hessqfSelectedAmountFinancedDisplay', '—');
-      setEl('hessqfSelectedSeer2Display', '—');
+      setEl('hessqfeSelectedPriceDisplay', '—');
+      setEl('hessqfeSelectedAmountFinancedDisplay', '—');
+      setEl('hessqfeSelectedSeer2Display', '—');
       return;
     }
     const total = currentTotalInvestment();
     const down  = (matrixState[p._id] || {}).down || 0;
-    setEl('hessqfSelectedPriceDisplay', fmt$(total));
-    setEl('hessqfSelectedAmountFinancedDisplay', fmt$(total - down));
-    setEl('hessqfSelectedSeer2Display', p.seer2 != null ? p.seer2 : '—');
+    setEl('hessqfeSelectedPriceDisplay', fmt$(total));
+    setEl('hessqfeSelectedAmountFinancedDisplay', fmt$(total - down));
+    setEl('hessqfeSelectedSeer2Display', p.seer2 != null ? p.seer2 : '—');
   }
 
   /* ── Step Navigation ── */
   function goToStep2() {
     if (!state.selectedUnit) {
-      const el = document.getElementById('hessqfAlertNoSelection');
+      const el = document.getElementById('hessqfeAlertNoSelection');
       if (el) el.classList.add('hessqf-show');
-      document.getElementById('hessqfSelectionBarSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById('hessqfeSelectionBarSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
 
     if (!state.quoteNumber) state.quoteNumber = generateQuoteNumber();
-    const qnEl = document.getElementById('hessqfQuoteNumberDisplay');
+    const qnEl = document.getElementById('hessqfeQuoteNumberDisplay');
     if (qnEl) qnEl.textContent = state.quoteNumber;
 
     const p = state.selectedUnit;
@@ -938,15 +938,15 @@ function parseMoney(v) {
     const s = matrixState[p._id] || { outdoor:0, indoor:0, system_price:0, installation:0, options:0, down:0, tradeIn:0 };
     const total = s.system_price + s.installation + s.options - s.tradeIn;
 
-    const summaryEl = document.getElementById('hessqfStep2Summary');
+    const summaryEl = document.getElementById('hessqfeStep2Summary');
     if (summaryEl) {
       const withNotes = (value, items) => (items && items.length) ? `${value} (${items.join(', ')})` : value;
       const rows = [
-        ['Hess Associate',  document.getElementById('hessqfFieldAssociate')?.value.trim() || '—'],
-        ['Existing Unit Brand',   document.getElementById('hessqfFieldExistingBrand')?.value.trim() || '—'],
-        ['Existing Model #',      document.getElementById('hessqfFieldExistingModel')?.value.trim() || '—'],
-        ['Existing Serial #',     document.getElementById('hessqfFieldExistingSerial')?.value.trim() || '—'],
-        ['Attic / Closet Unit',   (document.querySelector('input[name="hessqfExistingAtticCloset"]:checked') || {}).value || 'None'],
+        ['Hess Associate',  document.getElementById('hessqfeFieldAssociate')?.value.trim() || '—'],
+        ['Existing Unit Brand',   document.getElementById('hessqfeFieldExistingBrand')?.value.trim() || '—'],
+        ['Existing Model #',      document.getElementById('hessqfeFieldExistingModel')?.value.trim() || '—'],
+        ['Existing Serial #',     document.getElementById('hessqfeFieldExistingSerial')?.value.trim() || '—'],
+        ['Attic / Closet Unit',   (document.querySelector('input[name="hessqfeExistingAtticCloset"]:checked') || {}).value || 'None'],
         ['Quote Number',     state.quoteNumber],
         ['Selected Unit',    unitDisplayName(p)],
         ['Brand',            p.brand || '—'],
@@ -977,18 +977,18 @@ function parseMoney(v) {
   function goToStep1() { showStep(1); }
 
   function showStep(n) {
-    document.getElementById('hessqfStepPanel1')?.classList.toggle('active', n === 1);
-    document.getElementById('hessqfStepPanel2')?.classList.toggle('active', n === 2);
-    const topInfo = document.getElementById('hessqfTopInfoCard');
+    document.getElementById('hessqfeStepPanel1')?.classList.toggle('active', n === 1);
+    document.getElementById('hessqfeStepPanel2')?.classList.toggle('active', n === 2);
+    const topInfo = document.getElementById('hessqfeTopInfoCard');
     if (topInfo) topInfo.style.display = (n === 2) ? 'none' : '';
-    document.getElementById('hessqfStep1Pill')?.classList.toggle('active', n === 1);
-    document.getElementById('hessqfStep1Pill')?.classList.toggle('done',   n === 2);
-    document.getElementById('hessqfStep2Pill')?.classList.toggle('active', n === 2);
+    document.getElementById('hessqfeStep1Pill')?.classList.toggle('active', n === 1);
+    document.getElementById('hessqfeStep1Pill')?.classList.toggle('done',   n === 2);
+    document.getElementById('hessqfeStep2Pill')?.classList.toggle('active', n === 2);
     window.scrollTo({ top: 0, behavior: 'smooth' });
     // Re-measure the signature pad now that step 2 is laid out (it would have
     // been 0×0 while hidden, which throws off cursor mapping).
-    if (n === 2 && window.hessqfSignaturePad && window.hessqfSignaturePad.resize) {
-      requestAnimationFrame(() => window.hessqfSignaturePad.resize());
+    if (n === 2 && window.hessqfeSignaturePad && window.hessqfeSignaturePad.resize) {
+      requestAnimationFrame(() => window.hessqfeSignaturePad.resize());
     }
   }
 
@@ -1011,11 +1011,11 @@ function parseMoney(v) {
   /* ── Submit ── */
   function submitForm() {
     const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const v1 = validateField('hessqfFieldName',     'hessqfErrName',     'Full name is required.');
-    const v2 = validateField('hessqfFieldPhone',    'hessqfErrPhone',    'Phone number is required.');
-    const v3 = validateField('hessqfFieldEmail',    'hessqfErrEmail',    'A valid email address is required.', v => emailRe.test(v));
-    const v4 = validateField('hessqfFieldAddress',  'hessqfErrAddress',  'Address is required.');
-    const v5 = validateField('hessqfFieldAssociate','hessqfErrAssociate','Hess associate name is required.');
+    const v1 = validateField('hessqfeFieldName',     'hessqfeErrName',     'Full name is required.');
+    const v2 = validateField('hessqfeFieldPhone',    'hessqfeErrPhone',    'Phone number is required.');
+    const v3 = validateField('hessqfeFieldEmail',    'hessqfeErrEmail',    'A valid email address is required.', v => emailRe.test(v));
+    const v4 = validateField('hessqfeFieldAddress',  'hessqfeErrAddress',  'Address is required.');
+    const v5 = validateField('hessqfeFieldAssociate','hessqfeErrAssociate','Hess associate name is required.');
     if (!v1 || !v2 || !v3 || !v4 || !v5) return;
 
     const p = state.selectedUnit;
@@ -1027,24 +1027,24 @@ function parseMoney(v) {
     const optionsBreakdown      = (ms.optionsList || []).map(o => `${o.label}: ${fmt$(o.amount)}`).join('; ');
     const installationBreakdown = (ms.installationList || []).map(o => `${o.label}: ${fmt$(o.amount)}`).join('; ');
 
-    const associate        = document.getElementById('hessqfFieldAssociate').value.trim();
-    const existingBrand    = document.getElementById('hessqfFieldExistingBrand')?.value.trim()   || '';
-    const existingModel    = document.getElementById('hessqfFieldExistingModel')?.value.trim()   || '';
-    const existingSerial   = document.getElementById('hessqfFieldExistingSerial')?.value.trim()  || '';
-    const existingAtticCloset = (document.querySelector('input[name="hessqfExistingAtticCloset"]:checked') || {}).value || 'None';
-    const name      = document.getElementById('hessqfFieldName').value.trim();
-    const phone     = document.getElementById('hessqfFieldPhone').value.trim();
-    const email     = document.getElementById('hessqfFieldEmail').value.trim();
-    const address   = document.getElementById('hessqfFieldAddress').value.trim();
-    const schedule  = document.getElementById('hessqfFieldSchedule').value;
-    const comments  = document.getElementById('hessqfFieldComments').value.trim();
-    const financing0pct = (document.querySelector('input[name="hessqfFinancing0pct"]:checked') || {}).value || '';
-    const signature = (window.hessqfSignaturePad && window.hessqfSignaturePad.getDataURL()) || '';
+    const associate        = document.getElementById('hessqfeFieldAssociate').value.trim();
+    const existingBrand    = document.getElementById('hessqfeFieldExistingBrand')?.value.trim()   || '';
+    const existingModel    = document.getElementById('hessqfeFieldExistingModel')?.value.trim()   || '';
+    const existingSerial   = document.getElementById('hessqfeFieldExistingSerial')?.value.trim()  || '';
+    const existingAtticCloset = (document.querySelector('input[name="hessqfeExistingAtticCloset"]:checked') || {}).value || 'None';
+    const name      = document.getElementById('hessqfeFieldName').value.trim();
+    const phone     = document.getElementById('hessqfeFieldPhone').value.trim();
+    const email     = document.getElementById('hessqfeFieldEmail').value.trim();
+    const address   = document.getElementById('hessqfeFieldAddress').value.trim();
+    const schedule  = document.getElementById('hessqfeFieldSchedule').value;
+    const comments  = document.getElementById('hessqfeFieldComments').value.trim();
+    const financing0pct = (document.querySelector('input[name="hessqfeFinancing0pct"]:checked') || {}).value || '';
+    const signature = (window.hessqfeSignaturePad && window.hessqfeSignaturePad.getDataURL()) || '';
 
-    const submitBtn = document.getElementById('hessqfSubmitBtn');
+    const submitBtn = document.getElementById('hessqfeSubmitBtn');
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting…'; }
 
-    const errorEl = document.getElementById('hessqfAlertSubmitError');
+    const errorEl = document.getElementById('hessqfeAlertSubmitError');
     if (errorEl) errorEl.classList.remove('hessqf-show');
 
     const fd = new FormData();
@@ -1117,9 +1117,9 @@ function parseMoney(v) {
   /* ── Confirmation ── */
   function showConfirmation(name, email, address, p, meta, schedule, comments, emailSent) {
     const qn = state.quoteNumber;
-    const qnEl    = document.getElementById('hessqfConfirmQuoteNumber');
-    const noteEl  = document.getElementById('hessqfConfirmEmailNote');
-    const detailEl= document.getElementById('hessqfConfirmDetails');
+    const qnEl    = document.getElementById('hessqfeConfirmQuoteNumber');
+    const noteEl  = document.getElementById('hessqfeConfirmEmailNote');
+    const detailEl= document.getElementById('hessqfeConfirmDetails');
 
     if (qnEl) qnEl.textContent = qn;
     if (noteEl) {
@@ -1147,9 +1147,9 @@ function parseMoney(v) {
       ];
 
       const contactRows = [
-        ['Hess Associate', document.getElementById('hessqfFieldAssociate').value.trim()],
+        ['Hess Associate', document.getElementById('hessqfeFieldAssociate').value.trim()],
         ['Name',    name],
-        ['Phone',   document.getElementById('hessqfFieldPhone').value.trim()],
+        ['Phone',   document.getElementById('hessqfeFieldPhone').value.trim()],
         ['Email',   email],
         ['Address', address],
         ['Timing',  schedule],
@@ -1167,18 +1167,18 @@ function parseMoney(v) {
         </div>`;
     }
 
-    document.getElementById('hessqfStepPanel2')?.classList.remove('active');
-    document.getElementById('hessqfStep2Pill')?.classList.remove('active');
-    document.getElementById('hessqfStep2Pill')?.classList.add('done');
-    document.getElementById('hessqfConfirmationPanel')?.classList.add('hessqf-show');
+    document.getElementById('hessqfeStepPanel2')?.classList.remove('active');
+    document.getElementById('hessqfeStep2Pill')?.classList.remove('active');
+    document.getElementById('hessqfeStep2Pill')?.classList.add('done');
+    document.getElementById('hessqfeConfirmationPanel')?.classList.add('hessqf-show');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   /* ── Signature Pad ──
      Lightweight HTML5 canvas signature capture (mouse + touch). Exposes a
-     small API on window.hessqfSignaturePad: { isEmpty, clear, getDataURL }. */
+     small API on window.hessqfeSignaturePad: { isEmpty, clear, getDataURL }. */
   function initSignaturePad() {
-    const canvas = document.getElementById('hessqfSignaturePad');
+    const canvas = document.getElementById('hessqfeSignaturePad');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
 
@@ -1292,9 +1292,9 @@ function parseMoney(v) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       dirty = false;
     }
-    document.getElementById('hessqfSignatureClear')?.addEventListener('click', clear);
+    document.getElementById('hessqfeSignatureClear')?.addEventListener('click', clear);
 
-    window.hessqfSignaturePad = {
+    window.hessqfeSignaturePad = {
       isEmpty:    () => !dirty,
       clear:      clear,
       resize:     resize,
@@ -1309,24 +1309,24 @@ function parseMoney(v) {
     initSignaturePad();
     initCostAdjustments();
 
-    ['hessqfFilterBrand', 'hessqfFilterSystem', 'hessqfFilterCapacity'].forEach(id => {
+    ['hessqfeFilterBrand', 'hessqfeFilterSystem', 'hessqfeFilterCapacity'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.addEventListener('change', applyFilters);
     });
 
-    document.getElementById('hessqfFilterSearchBtn')?.addEventListener('click', applyFilters);
-    document.getElementById('hessqfFilterClearBtn') ?.addEventListener('click', clearFilters);
-    document.getElementById('hessqfGoToStep2Btn')   ?.addEventListener('click', goToStep2);
-    document.getElementById('hessqfBackBtn')        ?.addEventListener('click', goToStep1);
-    document.getElementById('hessqfSubmitBtn')      ?.addEventListener('click', submitForm);
+    document.getElementById('hessqfeFilterSearchBtn')?.addEventListener('click', applyFilters);
+    document.getElementById('hessqfeFilterClearBtn') ?.addEventListener('click', clearFilters);
+    document.getElementById('hessqfeGoToStep2Btn')   ?.addEventListener('click', goToStep2);
+    document.getElementById('hessqfeBackBtn')        ?.addEventListener('click', goToStep1);
+    document.getElementById('hessqfeSubmitBtn')      ?.addEventListener('click', submitForm);
 
     // Auto-populate the Step 2 contact fields from the customer info collected
     // at the top of the form. The Step 2 fields remain editable afterward.
     [
-      ['hessqfFieldCustomerName',    'hessqfFieldName'],
-      ['hessqfFieldCustomerEmail',   'hessqfFieldEmail'],
-      ['hessqfFieldCustomerPhone',   'hessqfFieldPhone'],
-      ['hessqfFieldCustomerAddress', 'hessqfFieldAddress'],
+      ['hessqfeFieldCustomerName',    'hessqfeFieldName'],
+      ['hessqfeFieldCustomerEmail',   'hessqfeFieldEmail'],
+      ['hessqfeFieldCustomerPhone',   'hessqfeFieldPhone'],
+      ['hessqfeFieldCustomerAddress', 'hessqfeFieldAddress'],
     ].forEach(([sourceId, targetId]) => {
       const source = document.getElementById(sourceId);
       const target = document.getElementById(targetId);

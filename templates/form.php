@@ -180,7 +180,7 @@ $has_data = ! empty( $config['systems'] );
           <div class="hqf-options-list" id="hessqfeOptionsList"></div>
         </div>
         <div class="hessqf-form-group">
-          <label>Procurement/Labor/Materials/Other</label>
+          <label>Procurement/Labor/Materials</label>
           <div class="hqf-options-input-row">
             <input type="text" inputmode="decimal" autocomplete="off" id="hessqfeAdjInstallation" class="hqf-adj-input" placeholder="$0" disabled readonly />
             <button type="button" id="hessqfeAddInstallationBtn" class="hqf-add-option-btn" disabled aria-label="Add an item">+</button>
@@ -207,7 +207,7 @@ $has_data = ! empty( $config['systems'] );
           <div class="hqf-options-list" id="hessqfeDownNotesList"></div>
         </div>
         <div class="hessqf-form-group">
-          <label>Trade In</label>
+          <label>Other</label>
           <div class="hqf-options-input-row">
             <input type="text" inputmode="decimal" autocomplete="off" id="hessqfeAdjTradeIn" class="hqf-adj-input" placeholder="$0" disabled />
             <button type="button" id="hessqfeAddTradeInNoteBtn" class="hqf-add-option-btn" disabled aria-label="Add a note">+</button>

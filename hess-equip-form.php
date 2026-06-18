@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Hess Air Equipment Form
  * Description:       Multi-step HVAC equipment quote form (no value package). Pulls product data from a Google Sheet (published CSV) and emails quotes via Mailgun.
- * Version:           3.5.47
+ * Version:           3.5.48
  * Author:            Hess Air
  * Requires at least: 5.8
  * Requires PHP:      7.4
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'HESSQFE_VERSION',    '3.5.47' );
+define( 'HESSQFE_VERSION',    '3.5.48' );
 define( 'HESSQFE_SLUG',       'hess-equip-form' );
 define( 'HESSQFE_DIR',        plugin_dir_path( __FILE__ ) );
 define( 'HESSQFE_URL',        plugin_dir_url( __FILE__ ) );
@@ -851,9 +851,9 @@ function hessqfe_pricing_rows( $pricing ) {
 	return [
 		[ 'HESSeRized Value Package',         $pricing['valuePackage'] ],
 		[ 'Options',                          $with_notes( $pricing['options'],      $pricing['optionsBreakdown'] ) ],
-		[ 'Procurement/Labor/Materials/Other', $with_notes( $pricing['installation'], $pricing['installationBreakdown'] ) ],
+		[ 'Procurement/Labor/Materials', $with_notes( $pricing['installation'], $pricing['installationBreakdown'] ) ],
 		[ 'Down Payment/Cash/Credit Card',    $with_notes( $pricing['downPayment'],  $pricing['downNotes'] ) ],
-		[ 'Trade In',                         $with_notes( $pricing['tradeIn'],      $pricing['tradeInNotes'] ) ],
+		[ 'Other',                         $with_notes( $pricing['tradeIn'],      $pricing['tradeInNotes'] ) ],
 		[ 'Total Investment',                 $pricing['totalInvestment'] ],
 		[ 'Amount Financed',                  $pricing['amountFinanced'] ],
 		[ '0% Interest Financing',            $pricing['financing0pct'] ],
@@ -1296,9 +1296,9 @@ function hessqfe_quote_render_detail_box( $post ) {
 	$pricing = [
 		[ 'HESSeRized Value Package',          $m( '_hessqfe_pricing_value_package' ) ],
 		[ 'Options',                           $with_notes( $m( '_hessqfe_pricing_options' ),      $m( '_hessqfe_pricing_options_breakdown' ) ) ],
-		[ 'Procurement/Labor/Materials/Other', $with_notes( $m( '_hessqfe_pricing_installation' ), $m( '_hessqfe_pricing_installation_breakdown' ) ) ],
+		[ 'Procurement/Labor/Materials', $with_notes( $m( '_hessqfe_pricing_installation' ), $m( '_hessqfe_pricing_installation_breakdown' ) ) ],
 		[ 'Down Payment/Cash/Credit Card',     $with_notes( $m( '_hessqfe_pricing_down_payment' ), $m( '_hessqfe_pricing_down_notes' ) ) ],
-		[ 'Trade In',                          $with_notes( $m( '_hessqfe_pricing_trade_in' ),     $m( '_hessqfe_pricing_trade_in_notes' ) ) ],
+		[ 'Other',                          $with_notes( $m( '_hessqfe_pricing_trade_in' ),     $m( '_hessqfe_pricing_trade_in_notes' ) ) ],
 		[ 'Total Investment',                  $m( '_hessqfe_pricing_total_investment' ) ],
 		[ 'Amount Financed',                   $m( '_hessqfe_pricing_amount_financed' ) ],
 		[ '0% Interest Financing',             $m( '_hessqfe_pricing_financing_0pct' ) ],

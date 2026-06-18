@@ -44,6 +44,9 @@
   const fmt$   = n => (n == null || n === '') ? '—' : '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   const fmtMo  = n => (n == null || n === '') ? '—' : '$' + Number(n).toFixed(2) + '/mo*';
   const fmtDay = n => (n == null || n === '') ? '—' : '$' + Number(n).toFixed(2) + '/day*';
+  // Signed money — used for the "Other" adjustment, which ADDS by default but
+  // accepts a negative value to subtract. Negative renders as -$X.
+  const fmtSigned = n => { const v = Number(n) || 0; return v < 0 ? '-' + fmt$(Math.abs(v)) : fmt$(v); };
   // tierMetaFor — used for the static value-package table (1-4) AND for unit
   // tier badges in the units/compare tables. Tier 0 = Basic (no stars, label
   // only). Tiers 5/6 are higher-end units that don't map to a value-package
@@ -403,7 +406,8 @@ function parseMoney(v) {
     if (n == null || n === '' || isNaN(n)) return '';
     const num = Number(n);
     if (num === 0) return '';
-    return '$' + num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    const sign = num < 0 ? '-' : '';
+    return sign + '$' + Math.abs(num).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
   }
 
   function initMatrixStateFor(unit, force) {
@@ -431,7 +435,7 @@ function parseMoney(v) {
   function totalFor(unitId) {
     const s = matrixState[unitId];
     if (!s) return 0;
-    return (s.system_price + s.installation + s.options) - s.tradeIn;
+    return (s.system_price + s.installation + s.options) + s.tradeIn;
   }
 
   function unitDisplayName(u) {
@@ -936,7 +940,7 @@ function parseMoney(v) {
     const p = state.selectedUnit;
     if (!matrixState[p._id]) initMatrixStateFor(p);
     const s = matrixState[p._id] || { outdoor:0, indoor:0, system_price:0, installation:0, options:0, down:0, tradeIn:0 };
-    const total = s.system_price + s.installation + s.options - s.tradeIn;
+    const total = s.system_price + s.installation + s.options + s.tradeIn;
 
     const summaryEl = document.getElementById('hessqfeStep2Summary');
     if (summaryEl) {
@@ -959,7 +963,7 @@ function parseMoney(v) {
         ['Options',          withNotes(fmt$(s.options), (s.optionsList || []).map(o => o.label))],
         ['Procurement/Labor/Materials', withNotes(fmt$(s.installation), (s.installationList || []).map(o => o.label))],
         ['Down Payment/Cash/Credit Card', withNotes(fmt$(s.down), s.downNotes || [])],
-        ['Other',         withNotes('-' + fmt$(s.tradeIn), s.tradeInNotes || [])],
+        ['Other',         withNotes(fmtSigned(s.tradeIn), s.tradeInNotes || [])],
         ['Total Investment', fmt$(total)],
         ['Amount Financed',  fmt$(total - s.down)],
         ['Monthly Payment',  fmtMo(p.monthly)],
@@ -1022,7 +1026,7 @@ function parseMoney(v) {
     if (!matrixState[p._id]) initMatrixStateFor(p);
     const ms = matrixState[p._id] || { outdoor:0, indoor:0, system_price:0, installation:0, options:0, down:0, tradeIn:0 };
     const msSystemPrice   = ms.system_price || (ms.outdoor + ms.indoor);
-    const totalInvestment = msSystemPrice + ms.installation + ms.options - ms.tradeIn;
+    const totalInvestment = msSystemPrice + ms.installation + ms.options + ms.tradeIn;
     const amountFinanced  = totalInvestment - ms.down;
     const optionsBreakdown      = (ms.optionsList || []).map(o => `${o.label}: ${fmt$(o.amount)}`).join('; ');
     const installationBreakdown = (ms.installationList || []).map(o => `${o.label}: ${fmt$(o.amount)}`).join('; ');
@@ -1079,7 +1083,7 @@ function parseMoney(v) {
     fd.append('options',      fmt$(ms.options));
     fd.append('optionsBreakdown', optionsBreakdown);
     fd.append('downPayment',  fmt$(ms.down));
-    fd.append('tradeIn',      fmt$(ms.tradeIn));
+    fd.append('tradeIn',      fmtSigned(ms.tradeIn));
     fd.append('downNotes',         (ms.downNotes || []).join('; '));
     fd.append('tradeInNotes',      (ms.tradeInNotes || []).join('; '));
     fd.append('totalInvestment', fmt$(totalInvestment));

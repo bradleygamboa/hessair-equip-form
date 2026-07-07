@@ -455,6 +455,8 @@ function parseMoney(v) {
     if (b.indexOf('trane')   === 0)  return base + 'trane.png';
     if (b.indexOf('runtru')  === 0)  return base + 'runtru.jpg';
     if (b.indexOf('ruud')    === 0)  return base + 'ruud.png';
+    if (b.indexOf('lennox')  === 0)  return base + 'lennox.png';
+    if (b.indexOf('payne')   === 0)  return base + 'payne.png';
     return '';
   }
 

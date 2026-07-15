@@ -35,21 +35,25 @@ $has_data = ! empty( $config['systems'] );
     <div class="hessqf-form-grid">
       <div class="hessqf-full-width hessqf-contact-row">
         <div class="hessqf-form-group">
-          <label>Full Name</label>
+          <label>Full Name <span class="hessqf-required">*</span></label>
           <input type="text" id="hessqfeFieldCustomerName" placeholder="Jane Smith" />
+          <span class="hessqf-field-error" id="hessqfeErrCustomerName"></span>
         </div>
         <div class="hessqf-form-group">
-          <label>Email Address</label>
+          <label>Email Address <span class="hessqf-required">*</span></label>
           <input type="email" id="hessqfeFieldCustomerEmail" placeholder="jane@example.com" />
+          <span class="hessqf-field-error" id="hessqfeErrCustomerEmail"></span>
         </div>
         <div class="hessqf-form-group">
-          <label>Phone Number</label>
+          <label>Phone Number <span class="hessqf-required">*</span></label>
           <input type="tel" id="hessqfeFieldCustomerPhone" placeholder="(555) 867-5309" />
+          <span class="hessqf-field-error" id="hessqfeErrCustomerPhone"></span>
         </div>
       </div>
       <div class="hessqf-form-group hessqf-full-width">
-        <label>Address</label>
+        <label>Address <span class="hessqf-required">*</span></label>
         <input type="text" id="hessqfeFieldCustomerAddress" placeholder="123 Main St, Brownsville, TX 78520" />
+        <span class="hessqf-field-error" id="hessqfeErrCustomerAddress"></span>
       </div>
     </div>
 
@@ -61,7 +65,7 @@ $has_data = ! empty( $config['systems'] );
           <input type="text" id="hessqfeFieldExistingBrand" placeholder="e.g. Carrier" />
         </div>
         <div class="hessqf-form-group">
-          <label>Model Number</label>
+          <label>Model Number/Size</label>
           <input type="text" id="hessqfeFieldExistingModel" placeholder="Model #" />
         </div>
         <div class="hessqf-form-group">

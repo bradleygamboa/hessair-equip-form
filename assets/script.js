@@ -533,7 +533,7 @@ function parseMoney(v) {
           ${valueRow('Cap. Stg.',       u => escapeHtml(u.stage_label || u.stage || '—'))}
           ${valueRow('Daily Invest.',   u => escapeHtml(fmtDay(u.daily)))}
           ${valueRow('Monthly Pay',     u => escapeHtml(fmtMo(u.monthly)))}
-          ${valueRow('Complete System', u => escapeHtml(fmt$(u.price)))}
+          ${valueRow('Complete System', u => escapeHtml(fmt$(u.price)), 'hqf-tc-highlight')}
           ${valueRow('Outdoor Unit',    u => escapeHtml(fmt$(u.outdoor_price)))}
           ${valueRow('Indoor Unit',     u => escapeHtml(fmt$(u.indoor_price)))}
           ${selectRow}
@@ -932,6 +932,18 @@ function parseMoney(v) {
       const el = document.getElementById('hessqfeAlertNoSelection');
       if (el) el.classList.add('hessqf-show');
       document.getElementById('hessqfeSelectionBarSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+
+    // Require the Hess Associate & Customer Information at the top before continuing.
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const okAssoc   = validateField('hessqfeFieldAssociate',       'hessqfeErrAssociate',       'Hess associate name is required.');
+    const okName    = validateField('hessqfeFieldCustomerName',    'hessqfeErrCustomerName',    'Full name is required.');
+    const okEmail   = validateField('hessqfeFieldCustomerEmail',   'hessqfeErrCustomerEmail',   'A valid email address is required.', v => emailRe.test(v));
+    const okPhone   = validateField('hessqfeFieldCustomerPhone',   'hessqfeErrCustomerPhone',   'Phone number is required.');
+    const okAddress = validateField('hessqfeFieldCustomerAddress', 'hessqfeErrCustomerAddress', 'Address is required.');
+    if (!okAssoc || !okName || !okEmail || !okPhone || !okAddress) {
+      document.getElementById('hessqfeTopInfoCard')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
 

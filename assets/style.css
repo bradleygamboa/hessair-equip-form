@@ -631,6 +631,7 @@ button.hqf-tc-remove {
 
 /* Value cells */
 .hqf-tc-cell { color: #1a3a5c; font-weight: 600; }
+.hqf-tc-highlight .hqf-tc-label, .hqf-tc-highlight .hqf-tc-cell { background: #fbe3ee; color: #c0457a; font-weight: 800; }
 .hqf-tc-dash { color: #c7ccd3; }
 
 /* Unit details row (spans all 4) */

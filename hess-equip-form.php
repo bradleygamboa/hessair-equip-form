@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Hess Air Equipment Form
  * Description:       Multi-step HVAC equipment quote form (no value package). Pulls product data from a Google Sheet (published CSV) and emails quotes via Mailgun.
- * Version:           3.5.51
+ * Version:           3.5.52
  * Author:            Hess Air
  * Requires at least: 5.8
  * Requires PHP:      7.4
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'HESSQFE_VERSION',    '3.5.51' );
+define( 'HESSQFE_VERSION',    '3.5.52' );
 define( 'HESSQFE_SLUG',       'hess-equip-form' );
 define( 'HESSQFE_DIR',        plugin_dir_path( __FILE__ ) );
 define( 'HESSQFE_URL',        plugin_dir_url( __FILE__ ) );
@@ -52,7 +52,7 @@ function hessqfe_default_table_columns() {
 		'model_id'  => [ 'label' => 'Model ID',           'visible' => 1 ],
 		'seer2'     => [ 'label' => 'SEER2',              'visible' => 1 ],
 		'year'      => [ 'label' => 'Year',               'visible' => 0 ],
-		'stage'     => [ 'label' => 'Cap. Stg.',          'visible' => 1 ],
+		'stage'     => [ 'label' => 'Comp. Stg.',          'visible' => 1 ],
 		'price'     => [ 'label' => 'System Price',       'visible' => 1 ],
 		'monthly'   => [ 'label' => 'Monthly Investment', 'visible' => 1 ],
 		'daily'     => [ 'label' => 'Daily Investment',   'visible' => 1 ],
@@ -68,7 +68,7 @@ function hessqfe_default_card_fields() {
 		'indoor_price'  => [ 'label' => 'Indoor Price',    'visible' => 0 ],
 		'seer2'         => [ 'label' => 'SEER2',           'visible' => 1 ],
 		'capacity'      => [ 'label' => 'Capacity',        'visible' => 1 ],
-		'stage'         => [ 'label' => 'Cap. Stg.',       'visible' => 1 ],
+		'stage'         => [ 'label' => 'Comp. Stg.',       'visible' => 1 ],
 		'monthly'       => [ 'label' => 'Monthly',         'visible' => 1 ],
 		'daily'         => [ 'label' => 'Daily',           'visible' => 1 ],
 	];
@@ -174,12 +174,13 @@ function hessqfe_parse_csv( $csv ) {
 			'tier_stars'    => str_repeat( '★', $tier ),
 			'model_id'      => trim( $get( $row, 'ID' ) ),
 			'seer2'         => $seer2,
-			'stage'         => trim( $get( $row, 'Cap. Stg.' ) ),
-			'stage_label'   => hessqfe_stage_label( $get( $row, 'Cap. Stg.' ) ),
+			'stage'         => trim( ( $get( $row, 'Comp. Stg.' ) ?: $get( $row, 'Cap. Stg.' ) ) ),
+			'stage_label'   => hessqfe_stage_label( ( $get( $row, 'Comp. Stg.' ) ?: $get( $row, 'Cap. Stg.' ) ) ),
 			'outdoor_model' => trim( $get( $row, 'Outdoor Unit Model' ) ),
 			'outdoor_price' => hessqfe_parse_currency( $get( $row, 'Outdoor Unit $' ) ),
 			'indoor_model'  => trim( $get( $row, 'Indoor Unit Model' ) ),
 			'indoor_price'  => hessqfe_parse_currency( $get( $row, 'Indoor Unit $' ) ),
+			'speed'         => trim( $get( $row, 'SPEED' ) ),
 			'price'         => $price,
 			'monthly'       => hessqfe_parse_currency( $get( $row, '*Est Mon Invest.' ) ),
 			'daily'         => hessqfe_parse_currency( $get( $row, '*Daily Invest.' ) ),
@@ -281,16 +282,28 @@ function hessqfe_enqueue_assets() {
 function hessqfe_shortcode( $atts = [] ) {
 	$systems    = hessqfe_get_systems();
 
-	// One-time migration (v3.1.2): turn on the Cap. Stg. column for installs
+	// One-time migration (v3.1.2): turn on the Comp. Stg. column for installs
 	// that were running before it became visible by default.
 	if ( ! get_option( 'hessqfe_capstg_migrated' ) ) {
 		$saved = get_option( 'hessqf_table_columns', null );
 		if ( is_array( $saved ) && isset( $saved['stage'] ) ) {
 			$saved['stage']['visible'] = 1;
-			$saved['stage']['label']   = 'Cap. Stg.';
+			$saved['stage']['label']   = 'Comp. Stg.';
 			update_option( 'hessqfe_table_columns', $saved );
 		}
 		update_option( 'hessqfe_capstg_migrated', 1 );
+	}
+
+	// One-time migration: rename saved Cap. Stg. column label to Comp. Stg.
+	if ( ! get_option( 'hessqfe_compstg_migrated' ) ) {
+		foreach ( [ 'hessqfe_table_columns', 'hessqfe_card_fields' ] as $opt ) {
+			$saved = get_option( $opt, null );
+			if ( is_array( $saved ) && isset( $saved['stage']['label'] ) && $saved['stage']['label'] === 'Cap. Stg.' ) {
+				$saved['stage']['label'] = 'Comp. Stg.';
+				update_option( $opt, $saved );
+			}
+		}
+		update_option( 'hessqfe_compstg_migrated', 1 );
 	}
 
 	$table_cols = get_option( 'hessqf_table_columns', hessqfe_default_table_columns() );
@@ -616,6 +629,7 @@ function hessqfe_handle_submission() {
 		'outdoor'       => sanitize_text_field( $_POST['outdoorModel'] ?? '' ),
 		'indoor'        => sanitize_text_field( $_POST['indoorModel']  ?? '' ),
 		'stage'         => sanitize_text_field( $_POST['stage']        ?? '' ),
+		'speed'         => sanitize_text_field( $_POST['indoorSpeed']  ?? '' ),
 	];
 
 	$pricing = [
@@ -887,7 +901,7 @@ function hessqfe_build_admin_email_html( $quote_num, $associate, $name, $phone, 
 		[ 'Brand',         $unit['brand'] ],
 		[ 'System Type',   $unit['system'] ],
 		[ 'Capacity',      $capacity_display ],
-		[ 'Cap. Stg.',     $unit['stage'] ],
+		[ 'Comp. Stg.',     $unit['stage'] ],
 		[ 'SEER2 Rating',  $unit['seer2'] ],
 		[ 'System Price',  $unit['price'] ],
 	];
@@ -898,6 +912,7 @@ function hessqfe_build_admin_email_html( $quote_num, $associate, $name, $phone, 
 	$product_rows[] = [ 'Daily Investment', $unit['daily'] ];
 	$product_rows[] = [ 'Outdoor Unit',     $unit['outdoor'] ];
 	$product_rows[] = [ 'Indoor Unit',      $unit['indoor'] ];
+	$product_rows[] = [ 'Indoor Speed',     $unit['speed'] ];
 
 	$html  = hessqfe_email_header();
 	$html .= '<p style="margin:0 0 4px;"><strong>New quote request received.</strong></p>';
@@ -937,7 +952,7 @@ function hessqfe_build_customer_email_html( $quote_num, $name, $unit, $pricing )
 		[ 'Brand',         $unit['brand'] ],
 		[ 'System Type',   $unit['system'] ],
 		[ 'Capacity',      $capacity_display ],
-		[ 'Cap. Stg.',     $unit['stage'] ],
+		[ 'Comp. Stg.',     $unit['stage'] ],
 		[ 'SEER2 Rating',  $unit['seer2'] ],
 		[ 'System Price',  $unit['price'] ],
 	];
@@ -1072,6 +1087,7 @@ function hessqfe_store_quote( $payload ) {
 		'_hessqfe_unit_tier'        => $unit['tier']        ?? '',
 		'_hessqfe_unit_seer2'       => $unit['seer2']       ?? '',
 		'_hessqfe_unit_stage'       => $unit['stage']       ?? '',
+		'_hessqfe_unit_speed'       => $unit['speed']       ?? '',
 		'_hessqfe_unit_price'       => $unit['price']       ?? '',
 		'_hessqfe_unit_price_taxed' => $unit['price_taxed'] ?? '',
 		'_hessqfe_unit_monthly'     => $unit['monthly']     ?? '',
@@ -1279,10 +1295,11 @@ function hessqfe_quote_render_detail_box( $post ) {
 		[ 'System Type',  $m( '_hessqfe_unit_system' ) ],
 		[ 'Capacity',     $m( '_hessqfe_unit_capacity' ) ],
 		[ 'Tier',         $m( '_hessqfe_unit_tier' ) ],
-		[ 'Stage',        $m( '_hessqfe_unit_stage' ) ],
+		[ 'Comp. Stg.',   $m( '_hessqfe_unit_stage' ) ],
 		[ 'SEER2',        $m( '_hessqfe_unit_seer2' ) ],
 		[ 'Outdoor Unit', $m( '_hessqfe_unit_outdoor' ) ],
 		[ 'Indoor Unit',  $m( '_hessqfe_unit_indoor' ) ],
+		[ 'Indoor Speed', $m( '_hessqfe_unit_speed' ) ],
 		[ 'System Price', $m( '_hessqfe_unit_price' ) ],
 		[ 'Tax-adjusted', $m( '_hessqfe_unit_price_taxed' ) ],
 		[ 'Monthly',      $m( '_hessqfe_unit_monthly' ) ],

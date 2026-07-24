@@ -530,12 +530,13 @@ function parseMoney(v) {
             <th class="hqf-tc-label">Unit Details</th>
             ${detailsCells}
           </tr>
-          ${valueRow('Cap. Stg.',       u => escapeHtml(u.stage_label || u.stage || '—'))}
+          ${valueRow('Comp. Stg.',       u => escapeHtml(u.stage_label || u.stage || '—'))}
           ${valueRow('Daily Invest.',   u => escapeHtml(fmtDay(u.daily)))}
           ${valueRow('Monthly Pay',     u => escapeHtml(fmtMo(u.monthly)))}
           ${valueRow('Complete System', u => escapeHtml(fmt$(u.price)), 'hqf-tc-highlight')}
           ${valueRow('Outdoor Unit',    u => escapeHtml(fmt$(u.outdoor_price)))}
           ${valueRow('Indoor Unit',     u => escapeHtml(fmt$(u.indoor_price)))}
+          ${valueRow('Indoor Speed',   u => escapeHtml(u.speed || '—'))}
           ${selectRow}
         </tbody>
       </table>
@@ -970,10 +971,11 @@ function parseMoney(v) {
         ['Brand',            p.brand || '—'],
         ['System Type',      p.system || '—'],
         ['Capacity',         p.capacity ? (p.capacity + ' Ton') : '—'],
-        ['Cap. Stg.',        p.stage_label || p.stage || '—'],
+        ['Comp. Stg.',        p.stage_label || p.stage || '—'],
         ['SEER2',            p.seer2 != null ? p.seer2 : '—'],
         ['Outdoor Unit',     p.outdoor_model || '—'],
         ['Indoor Unit',      p.indoor_model || '—'],
+        ['Indoor Speed',    p.speed || '—'],
         ['Options',          withNotes(fmt$(s.options), (s.optionsList || []).map(o => o.label))],
         ['Procurement/Labor/Materials', withNotes(fmt$(s.installation), (s.installationList || []).map(o => o.label))],
         ['Down Payment/Cash/Credit Card', withNotes(fmt$(s.down), s.downNotes || [])],
@@ -1106,6 +1108,7 @@ function parseMoney(v) {
     fd.append('daily',        fmtDay(p.daily));
     fd.append('outdoorModel', p.outdoor_model || '');
     fd.append('indoorModel',  p.indoor_model  || '');
+    fd.append('indoorSpeed', p.speed || '');
     fd.append('stage',        p.stage_label || p.stage || '');
     fd.append('signature',    signature);
 
@@ -1157,7 +1160,7 @@ function parseMoney(v) {
         ['Brand',          p.brand || '—'],
         ['Type',           p.system || '—'],
         ['Capacity',       p.capacity ? (p.capacity + ' Ton') : '—'],
-        ['Cap. Stg.',      p.stage_label || p.stage || '—'],
+        ['Comp. Stg.',      p.stage_label || p.stage || '—'],
         ['SEER2',          p.seer2 != null ? p.seer2 : '—'],
         ['Price',          fmt$(p.price)],
         ['Monthly',        fmtMo(p.monthly)],

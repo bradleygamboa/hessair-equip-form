@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Hess Air Equipment Form
  * Description:       Multi-step HVAC equipment quote form (no value package). Pulls product data from a Google Sheet (published CSV) and emails quotes via Mailgun.
- * Version:           3.5.52
+ * Version:           3.5.53
  * Author:            Hess Air
  * Requires at least: 5.8
  * Requires PHP:      7.4
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'HESSQFE_VERSION',    '3.5.52' );
+define( 'HESSQFE_VERSION',    '3.5.53' );
 define( 'HESSQFE_SLUG',       'hess-equip-form' );
 define( 'HESSQFE_DIR',        plugin_dir_path( __FILE__ ) );
 define( 'HESSQFE_URL',        plugin_dir_url( __FILE__ ) );
@@ -645,6 +645,8 @@ function hessqfe_handle_submission() {
 		'totalInvestment'        => sanitize_text_field( $_POST['totalInvestment']        ?? '' ),
 		'amountFinanced'         => sanitize_text_field( $_POST['amountFinanced']         ?? '' ),
 		'financing0pct'          => sanitize_text_field( $_POST['financing0pct']          ?? '' ),
+		'financingTerm'          => sanitize_text_field( $_POST['financingTerm']          ?? '' ),
+		'financing999'           => sanitize_text_field( $_POST['financing999']           ?? '' ),
 	];
 
 	if ( ! $name || ! $email || ! $phone || ! $quote_num ) {
@@ -929,7 +931,10 @@ function hessqfe_build_admin_email_html( $quote_num, $associate, $name, $phone, 
 	$html .= hessqfe_email_section_h( 'Quoted System' );
 	$html .= hessqfe_email_data_table( $product_rows );
 	$html .= hessqfe_email_section_h( 'Pricing & Investment' );
-	$html .= hessqfe_email_data_table( hessqfe_pricing_rows( $pricing ) );
+	$admin_pricing_rows = hessqfe_pricing_rows( $pricing );
+	$admin_pricing_rows[] = [ 'Financing Term',  $pricing['financingTerm'] ?? '' ];
+	$admin_pricing_rows[] = [ '9.99% Financing', $pricing['financing999']  ?? '' ];
+	$html .= hessqfe_email_data_table( $admin_pricing_rows );
 
 	if ( $signature ) {
 		$html .= hessqfe_email_section_h( 'Customer Signature' );
@@ -1107,6 +1112,8 @@ function hessqfe_store_quote( $payload ) {
 		'_hessqfe_pricing_total_investment'       => $pricing['totalInvestment']       ?? '',
 		'_hessqfe_pricing_amount_financed'        => $pricing['amountFinanced']        ?? '',
 		'_hessqfe_pricing_financing_0pct'         => $pricing['financing0pct']         ?? '',
+		'_hessqfe_pricing_financing_term'         => $pricing['financingTerm']         ?? '',
+		'_hessqfe_pricing_financing_999'          => $pricing['financing999']          ?? '',
 	];
 	foreach ( $meta as $k => $v ) {
 		update_post_meta( $post_id, $k, $v );
@@ -1319,6 +1326,8 @@ function hessqfe_quote_render_detail_box( $post ) {
 		[ 'Total Investment',                  $m( '_hessqfe_pricing_total_investment' ) ],
 		[ 'Amount Financed',                   $m( '_hessqfe_pricing_amount_financed' ) ],
 		[ '0% Interest Financing',             $m( '_hessqfe_pricing_financing_0pct' ) ],
+		[ 'Financing Term',                     $m( '_hessqfe_pricing_financing_term' ) ],
+		[ '9.99% Financing',                    $m( '_hessqfe_pricing_financing_999' ) ],
 	];
 
 	$render = function( $heading, $items ) {

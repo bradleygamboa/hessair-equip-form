@@ -982,6 +982,8 @@ function parseMoney(v) {
         ['Other',         withNotes(fmtSigned(s.tradeIn), s.tradeInNotes || [])],
         ['Total Investment', fmt$(total)],
         ['Amount Financed',  fmt$(total - s.down)],
+        ['Financing Term',   (document.querySelector('input[name="hessqfeFinancingTerm"]:checked') || {}).value || '—'],
+        ['9.99% Financing',  (document.querySelector('input[name="hessqfeFinancing999"]:checked') || {}).value || '—'],
         ['Monthly Payment',  fmtMo(p.monthly)],
         ['Daily Investment', fmtDay(p.daily)],
       ];
@@ -1059,6 +1061,8 @@ function parseMoney(v) {
     const schedule  = document.getElementById('hessqfeFieldSchedule').value;
     const comments  = document.getElementById('hessqfeFieldComments').value.trim();
     const financing0pct = (document.querySelector('input[name="hessqfeFinancing0pct"]:checked') || {}).value || '';
+    const financingTerm = (document.querySelector('input[name="hessqfeFinancingTerm"]:checked') || {}).value || '';
+    const financing999  = (document.querySelector('input[name="hessqfeFinancing999"]:checked') || {}).value || '';
     const signature = (window.hessqfeSignaturePad && window.hessqfeSignaturePad.getDataURL()) || '';
 
     const submitBtn = document.getElementById('hessqfeSubmitBtn');
@@ -1083,6 +1087,8 @@ function parseMoney(v) {
     fd.append('schedule',     schedule);
     fd.append('comments',     comments);
     fd.append('financing0pct', financing0pct);
+    fd.append('financingTerm', financingTerm);
+    fd.append('financing999', financing999);
     fd.append('ahri',         p.ahri     || '');
     fd.append('modelId',      p.model_id || p.outdoor_model || '');
     fd.append('brand',        p.brand    || '');
@@ -1324,6 +1330,21 @@ function parseMoney(v) {
   }
 
   /* ── Init ── */
+  function updateHessqfeFinancingSubFields() {
+    const val = (document.querySelector('input[name="hessqfeFinancing0pct"]:checked') || {}).value || '';
+    const show = val === 'Yes';
+    const termRow = document.getElementById('hessqfeFinancingTermRow');
+    const row999  = document.getElementById('hessqfeFinancing999Row');
+    const disc999 = document.getElementById('hessqfeFinancing999Disclaimer');
+    if (termRow) termRow.style.display = show ? '' : 'none';
+    if (row999)  row999.style.display  = show ? '' : 'none';
+    if (disc999) disc999.style.display = show ? '' : 'none';
+    if (!show) {
+      document.querySelectorAll('input[name="hessqfeFinancingTerm"]').forEach(r => r.checked = false);
+      document.querySelectorAll('input[name="hessqfeFinancing999"]').forEach(r => r.checked = false);
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     populateFilters();
     renderTable();
@@ -1338,6 +1359,7 @@ function parseMoney(v) {
     document.getElementById('hessqfeFilterSearchBtn')?.addEventListener('click', applyFilters);
     document.getElementById('hessqfeFilterClearBtn') ?.addEventListener('click', clearFilters);
     document.getElementById('hessqfeGoToStep2Btn')   ?.addEventListener('click', goToStep2);
+    document.querySelectorAll('input[name="hessqfeFinancing0pct"]').forEach(r => r.addEventListener('change', updateHessqfeFinancingSubFields));
     document.getElementById('hessqfeBackBtn')        ?.addEventListener('click', goToStep1);
     document.getElementById('hessqfeSubmitBtn')      ?.addEventListener('click', submitForm);
 

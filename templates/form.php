@@ -152,6 +152,26 @@ $has_data = ! empty( $config['systems'] );
           </div>
         </div>
 
+        <div class="hessqf-financing-question" id="hessqfeFinancingTermRow" style="display:none;">
+          <label>How Many Payments:</label>
+          <div class="hessqf-radio-group">
+            <label class="hessqf-radio-option"><input type="radio" name="hessqfeFinancingTerm" value="12 mos." /> 12 mos.</label>
+            <label class="hessqf-radio-option"><input type="radio" name="hessqfeFinancingTerm" value="24 mos." /> 24 mos.</label>
+            <label class="hessqf-radio-option"><input type="radio" name="hessqfeFinancingTerm" value="36 mos." /> 36 mos.</label>
+            <label class="hessqf-radio-option"><input type="radio" name="hessqfeFinancingTerm" value="48 mos." /> 48 mos.</label>
+            <label class="hessqf-radio-option"><input type="radio" name="hessqfeFinancingTerm" value="60 mos." /> 60 mos.</label>
+          </div>
+        </div>
+
+        <div class="hessqf-financing-question" id="hessqfeFinancing999Row" style="display:none;">
+          <label>Will customer want 9.99% financing?</label>
+          <div class="hessqf-radio-group">
+            <label class="hessqf-radio-option"><input type="radio" name="hessqfeFinancing999" id="hessqfeFinancing999Yes" value="Yes" /> Yes</label>
+            <label class="hessqf-radio-option"><input type="radio" name="hessqfeFinancing999" id="hessqfeFinancing999No" value="No" /> No</label>
+          </div>
+        </div>
+        <div class="hessqf-financing-disclaimer" id="hessqfeFinancing999Disclaimer" style="display:none;">*9.99% APR for 120 equal monthly payments.</div>
+
         <div class="hessqf-financing-approved">Financing with approved credit.</div>
         <div class="hessqf-financing-disclaimer">*Estimate based on 9.99% APR financing over 10 years with a minimum payment.</div>
       </div>

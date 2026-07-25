@@ -1334,14 +1334,9 @@ function parseMoney(v) {
     const val = (document.querySelector('input[name="hessqfeFinancing0pct"]:checked') || {}).value || '';
     const show = val === 'Yes';
     const termRow = document.getElementById('hessqfeFinancingTermRow');
-    const row999  = document.getElementById('hessqfeFinancing999Row');
-    const disc999 = document.getElementById('hessqfeFinancing999Disclaimer');
     if (termRow) termRow.style.display = show ? '' : 'none';
-    if (row999)  row999.style.display  = show ? '' : 'none';
-    if (disc999) disc999.style.display = show ? '' : 'none';
     if (!show) {
       document.querySelectorAll('input[name="hessqfeFinancingTerm"]').forEach(r => r.checked = false);
-      document.querySelectorAll('input[name="hessqfeFinancing999"]').forEach(r => r.checked = false);
     }
   }
 

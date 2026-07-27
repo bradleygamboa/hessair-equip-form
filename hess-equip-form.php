@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Hess Air Equipment Form
  * Description:       Multi-step HVAC equipment quote form (no value package). Pulls product data from a Google Sheet (published CSV) and emails quotes via Mailgun.
- * Version:           3.5.54
+ * Version:           3.5.55
  * Author:            Hess Air
  * Requires at least: 5.8
  * Requires PHP:      7.4
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'HESSQFE_VERSION',    '3.5.54' );
+define( 'HESSQFE_VERSION',    '3.5.55' );
 define( 'HESSQFE_SLUG',       'hess-equip-form' );
 define( 'HESSQFE_DIR',        plugin_dir_path( __FILE__ ) );
 define( 'HESSQFE_URL',        plugin_dir_url( __FILE__ ) );
@@ -322,8 +322,15 @@ function hessqfe_shortcode( $atts = [] ) {
 		}
 	}
 
+	$associate_email = '';
+	if ( is_user_logged_in() ) {
+		$current_user     = wp_get_current_user();
+		$associate_email   = $current_user->user_email;
+	}
+
 	$config = [
-		'systems'     => $systems,
+		'systems'        => $systems,
+		'associateEmail' => $associate_email,
 		'tableCols'   => $table_cols,
 		'cardFields'  => $card_flds,
 		'taxDefault'  => $tax_default,
@@ -594,6 +601,7 @@ function hessqfe_handle_submission() {
 
 	$quote_num = sanitize_text_field( $_POST['quoteNumber'] ?? '' );
 	$associate             = sanitize_text_field( $_POST['associate']          ?? '' );
+	$associate_email       = sanitize_text_field( $_POST['associateEmail']     ?? '' );
 	$existing_brand        = sanitize_text_field( $_POST['existingBrand']       ?? '' );
 	$existing_model        = sanitize_text_field( $_POST['existingModel']       ?? '' );
 	$existing_serial       = sanitize_text_field( $_POST['existingSerial']      ?? '' );
@@ -657,6 +665,7 @@ function hessqfe_handle_submission() {
 	$quote_post_id = hessqfe_store_quote( [
 		'quoteNumber'         => $quote_num,
 		'associate'           => $associate,
+		'associateEmail'      => $associate_email,
 		'existingBrand'       => $existing_brand,
 		'existingModel'       => $existing_model,
 		'existingSerial'      => $existing_serial,
@@ -677,7 +686,7 @@ function hessqfe_handle_submission() {
 	$notify_bcc = hessqfe_parse_email_list( get_option( 'hessqfe_notify_bcc', '' ) );
 
 	$existing   = [ 'brand' => $existing_brand, 'model' => $existing_model, 'serial' => $existing_serial, 'atticCloset' => $existing_attic_closet ];
-	$admin_html = hessqfe_build_admin_email_html( $quote_num, $associate, $name, $phone, $email, $address, $schedule, $comments, $unit, $pricing, $quote_post_id, $signature, $existing );
+	$admin_html = hessqfe_build_admin_email_html( $quote_num, $associate, $associate_email, $name, $phone, $email, $address, $schedule, $comments, $unit, $pricing, $quote_post_id, $signature, $existing );
 	$cust_html  = hessqfe_build_customer_email_html( $quote_num, $name, $unit, $pricing );
 
 	// When the customer has both picked a schedule AND signed the quote, treat
@@ -878,9 +887,10 @@ function hessqfe_pricing_rows( $pricing ) {
 
 /* ── Email body builders ── */
 
-function hessqfe_build_admin_email_html( $quote_num, $associate, $name, $phone, $email, $address, $schedule, $comments, $unit, $pricing, $quote_post_id = 0, $signature = '', $existing = [] ) {
+function hessqfe_build_admin_email_html( $quote_num, $associate, $associate_email, $name, $phone, $email, $address, $schedule, $comments, $unit, $pricing, $quote_post_id = 0, $signature = '', $existing = [] ) {
 	$contact_rows = [
 		[ 'Hess Associate', $associate ],
+		[ 'Associate Email', $associate_email ],
 		[ 'Name',    $name ],
 		[ 'Phone',   $phone ],
 		[ 'Email',   $email ],
@@ -1069,6 +1079,7 @@ function hessqfe_store_quote( $payload ) {
 	$meta = [
 		'_hessqfe_quote_number'          => $payload['quoteNumber']   ?? '',
 		'_hessqfe_associate'             => $payload['associate']    ?? '',
+		'_hessqfe_associate_email'       => $payload['associateEmail'] ?? '',
 		'_hessqfe_existing_brand'        => $payload['existingBrand']       ?? '',
 		'_hessqfe_existing_model'        => $payload['existingModel']       ?? '',
 		'_hessqfe_existing_serial'       => $payload['existingSerial']      ?? '',
@@ -1284,6 +1295,7 @@ function hessqfe_quote_render_detail_box( $post ) {
 	];
 	$customer = [
 		[ 'Hess Associate', $m( '_hessqfe_associate' ) ],
+		[ 'Associate Email', $m( '_hessqfe_associate_email' ) ],
 		[ 'Name',     $m( '_hessqfe_name' ) ],
 		[ 'Email',    $m( '_hessqfe_email' ) ],
 		[ 'Phone',    $m( '_hessqfe_phone' ) ],

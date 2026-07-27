@@ -962,6 +962,7 @@ function parseMoney(v) {
       const withNotes = (value, items) => (items && items.length) ? `${value} (${items.join(', ')})` : value;
       const rows = [
         ['Hess Associate',  document.getElementById('hessqfeFieldAssociate')?.value.trim() || '—'],
+        ['Associate Email',  document.getElementById('hessqfeFieldAssociateEmail')?.value.trim() || '—'],
         ['Existing Unit Brand',   document.getElementById('hessqfeFieldExistingBrand')?.value.trim() || '—'],
         ['Existing Model #',      document.getElementById('hessqfeFieldExistingModel')?.value.trim() || '—'],
         ['Existing Serial #',     document.getElementById('hessqfeFieldExistingSerial')?.value.trim() || '—'],
@@ -1050,6 +1051,7 @@ function parseMoney(v) {
     const installationBreakdown = (ms.installationList || []).map(o => `${o.label}: ${fmt$(o.amount)}`).join('; ');
 
     const associate        = document.getElementById('hessqfeFieldAssociate').value.trim();
+    const associateEmail   = document.getElementById('hessqfeFieldAssociateEmail')?.value.trim() || '';
     const existingBrand    = document.getElementById('hessqfeFieldExistingBrand')?.value.trim()   || '';
     const existingModel    = document.getElementById('hessqfeFieldExistingModel')?.value.trim()   || '';
     const existingSerial   = document.getElementById('hessqfeFieldExistingSerial')?.value.trim()  || '';
@@ -1076,6 +1078,7 @@ function parseMoney(v) {
     fd.append('nonce',        hessqfeData.nonce);
     fd.append('quoteNumber',  state.quoteNumber);
     fd.append('associate',    associate);
+    fd.append('associateEmail', associateEmail);
     fd.append('existingBrand',       existingBrand);
     fd.append('existingModel',       existingModel);
     fd.append('existingSerial',      existingSerial);
@@ -1175,6 +1178,7 @@ function parseMoney(v) {
 
       const contactRows = [
         ['Hess Associate', document.getElementById('hessqfeFieldAssociate').value.trim()],
+        ...(associateEmail ? [['Associate Email', associateEmail]] : []),
         ['Name',    name],
         ['Phone',   document.getElementById('hessqfeFieldPhone').value.trim()],
         ['Email',   email],

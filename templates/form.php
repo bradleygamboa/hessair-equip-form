@@ -29,6 +29,10 @@ $has_data = ! empty( $config['systems'] );
         <input type="text" id="hessqfeFieldAssociate" placeholder="John Doe" />
         <span class="hessqf-field-error" id="hessqfeErrAssociate"></span>
       </div>
+      <div class="hessqf-form-group hessqf-full-width">
+        <label>Associate Email</label>
+        <input type="email" id="hessqfeFieldAssociateEmail" placeholder="associate@hessair.com" value="<?php echo esc_attr( $config['associateEmail'] ?? '' ); ?>" />
+      </div>
     </div>
 
     <div class="hessqf-card-title" style="margin-top:18px;">Customer Information</div>

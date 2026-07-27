@@ -531,12 +531,12 @@ function parseMoney(v) {
             ${detailsCells}
           </tr>
           ${valueRow('Comp. Stg.',       u => escapeHtml(u.stage_label || u.stage || '—'))}
+          ${valueRow('Indoor Speed',   u => escapeHtml(u.speed || '—'))}
           ${valueRow('Daily Invest.',   u => escapeHtml(fmtDay(u.daily)))}
           ${valueRow('Monthly Pay',     u => escapeHtml(fmtMo(u.monthly)))}
           ${valueRow('Complete System', u => escapeHtml(fmt$(u.price)), 'hqf-tc-highlight')}
           ${valueRow('Outdoor Unit',    u => escapeHtml(fmt$(u.outdoor_price)))}
           ${valueRow('Indoor Unit',     u => escapeHtml(fmt$(u.indoor_price)))}
-          ${valueRow('Indoor Speed',   u => escapeHtml(u.speed || '—'))}
           ${selectRow}
         </tbody>
       </table>

@@ -1351,6 +1351,16 @@ function parseMoney(v) {
     document.getElementById('hessqfeFilterSearchBtn')?.addEventListener('click', applyFilters);
     document.getElementById('hessqfeFilterClearBtn') ?.addEventListener('click', clearFilters);
     document.getElementById('hessqfeGoToStep2Btn')   ?.addEventListener('click', goToStep2);
+    document.querySelectorAll('input[name="hessqfeFinancing0pct"]').forEach(r => r.addEventListener('change', () => {
+      if (r.value === 'No' && r.checked) {
+        document.querySelectorAll('input[name="hessqfeFinancingTerm"]').forEach(t => t.checked = false);
+      }
+    }));
+    document.querySelectorAll('input[name="hessqfeFinancing999"]').forEach(r => r.addEventListener('change', () => {
+      if (r.value === 'No' && r.checked) {
+        document.querySelectorAll('input[name="hessqfeFinancingAprTerm"]').forEach(t => t.checked = false);
+      }
+    }));
     document.getElementById('hessqfeBackBtn')        ?.addEventListener('click', goToStep1);
     document.getElementById('hessqfeSubmitBtn')      ?.addEventListener('click', submitForm);
 

@@ -476,6 +476,7 @@
   color: var(--hqf-text);
 }
 .hessqf-radio-group { display: flex; gap: 14px; }
+.hessqf-financing-inline-label { font-weight: 600; }
 .hessqf-radio-option {
   display: flex;
   align-items: center;
